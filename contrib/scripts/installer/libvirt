@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -o errtrace
+set -o functrace
+set -o errexit
+set -o nounset
+set -o pipefail
+export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+if [ ! $(which sudo) ]; then
+	echo 'Please install "sudo" package' 1>&2
+	exit 1
+fi
+if [[ $EUID -eq 0 ]]; then
+   echo "You must run this script as non-root user with sudo permission." 1>&2
+   exit 1
+fi
+if [ -n "$(command -v apt-get)" ]; then
+	echo "*** Detected Debian based Linux" 1>&2
+	export DEBIAN_FRONTEND=noninteractive
+  sudo sed -i.bak -e 's/^# deb-src /deb-src /' /etc/apt/sources.list
+	sudo apt-get update -qq > /dev/null 2>&1
+  sudo apt-get install vagrant -yqq > /dev/null 2>&1
+  sudo apt-get build-dep ruby-libvirt -yqq > /dev/null 2>&1
+  sudo apt-get install qemu libvirt-daemon-system libvirt-clients ebtables dnsmasq-base -yqq > /dev/null 2>&1
+  sudo apt-get install libxslt-dev libxml2-dev libvirt-dev zlib1g-dev ruby-dev -yqq > /dev/null 2>&1
+  sudo apt-get install virt-manager qemu-kvm qemu-utils -yqq > /dev/null 2>&1
+else
+	echo "*** only apt-based package manager is supported at the moment" 1>&2
+  exit 1
+fi
+sudo modprobe 9pnet
+sudo modprobe 9pnet_virtio
+sudo sed -i.bak \
+  -e '/loop/d' \
+  -e '/virtio/d' \
+  -e '/9p/d' \
+  /etc/modules
+cat << EOF | sudo tee -a /etc/modules
+loop
+virtio
+9p
+9pnet
+9pnet_virtio
+EOF
+sudo sed -i \
+  -e '/user\s*=/d' \
+  -e '/group\s*=/d' \
+  -e '/dynamic_ownership\s*=/d' \
+  /etc/libvirt/qemu.conf
+cat << EOF | sudo tee -a /etc/libvirt/qemu.conf > /dev/null
+user = "$(id -u)"
+group = "$(id -g)"
+dynamic_ownership = 1
+EOF
+sudo systemctl restart libvirtd
+sudo usermod -aG "libvirt" $(whoami) || true
+sudo usermod -aG "libvirt-qemu" $(whoami) || true
+sudo usermod -aG "libvirt-dnsmasq" $(whoami) || true
+sudo usermod -aG "kvm" $(whoami) || true
+vagrant plugin install vagrant-libvirt

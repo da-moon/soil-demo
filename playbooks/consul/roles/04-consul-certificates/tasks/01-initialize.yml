@@ -1,0 +1,37 @@
+---
+- block :
+  - name: "Removing certificates directory"
+    file:
+      path: "{{ certificate_root_dir }}/consul"
+      state: absent
+    when:
+      - override_certificate is defined
+      - override_certificate
+  - stat:
+      path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}"
+    register: "template_root_dir"
+  - name: "Creating directory to store certificates"
+    file:
+      path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}"
+      state: directory
+      owner: "{{ ansible_user }}"
+      mode: '0755'
+    when:
+    - template_root_dir.stat.exists == False
+
+  - name: "finding all insecure consul certificates"
+    find:
+      file_type: file
+      use_regex: yes
+      recurse: yes
+      paths:
+        - "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}"
+      patterns:
+        - '^.*\.pem$'
+        - '^.*\.csr$'
+    register: "filelist"
+  - name: "removing insecure consul certificates"
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop: "{{ filelist.files | map(attribute='path')  | list }}"

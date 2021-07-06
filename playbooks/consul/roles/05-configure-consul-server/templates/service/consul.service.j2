@@ -1,0 +1,36 @@
+[Unit]
+Description="HashiCorp Consul - A service mesh solution"
+Documentation=https://www.consul.io/
+Requires=network-online.target
+After=network-online.target
+{% for item in hcl_config_filelist %}
+ConditionFileNotEmpty={{ item }}
+{% if not loop.last %}
+{% endif %}
+{% endfor %}
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+MemoryAccounting=true
+MemoryHigh=4096M
+MemoryMax=8192M
+User=consul
+Group=consul
+ExecStart=/usr/local/bin/consul agent -config-dir={{ consul_user_home_path }}/config
+# BEGIN ANSIBLE MANAGED BLOCK
+# END ANSIBLE MANAGED BLOCK
+ExecReload=/usr/local/bin/consul reload
+ExecStop=/usr/local/bin/consul leave
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+StartLimitInterval=60
+StartLimitBurst=3
+LimitNOFILE=65536
+
+
+[Install]
+WantedBy=multi-user.target

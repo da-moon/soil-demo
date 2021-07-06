@@ -1,0 +1,52 @@
+
+- hosts: all
+  gather_facts: no
+  pre_tasks:
+  - name: "Asserting variables globally used variables"
+    assert:
+      that:
+        - architecture_map is defined
+        - systemd_unit_directory is defined
+  - block :
+    - name: check python executable is present
+      shell: "which python"
+      register: result
+      ignore_errors: true
+    - name: 'install python'
+      raw: 'apt-get install -yqq python'
+      when: result.rc != 0
+    - name: check python-apt is installed
+      shell: "dpkg -l | grep python-apt"
+      register: result
+      ignore_errors: true
+    - name: 'install python-apt'
+      raw: 'apt-get install -yqq python-apt'
+      when: result.rc != 0
+  become: yes
+- name: shared tasks
+  hosts: all
+  gather_facts: yes
+  roles:
+    - { role: 01-ansible-controller, tags: ["01-ansible-controller"]}
+    - { role: 02-install-prerequisites, tags: ["02-install-prerequisites"]}
+    - { role: 03-install-consul, tags: ["03-install-consul"]}
+- name: Hashicorp Consul Cluster setup playbooks
+  hosts: staging-servers
+  gather_facts: yes
+  vars_prompt:
+  - name: vault_password_file
+    prompt: Where is ansible-vault password file?
+    private: no
+  vars:
+    consul_tls_disable : true
+    override_certificate: true
+    certificate_root_dir: "{{ inventory_dir+'/host_vars/certificates'}}"
+  roles:
+    - { role: 04-consul-certificates, tags: ["04-consul-certificates"] }
+    - role: 05-configure-consul-server
+      tags:
+        - "05-configure-consul-server"
+      vars:
+        log_level : "{{ lookup('env','CONSUL_LOG_LEVEL') | default('DEBUG', true) }}"
+        consul_ui : "{{ lookup('env','CONSUL_UI') | default(true, true) }}"
+        default_agent_policy : "{{ lookup('env','DEFAULT_AGENT_POLICY') | default('node-policy', true) }}"

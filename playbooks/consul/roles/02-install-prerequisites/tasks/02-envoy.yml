@@ -1,0 +1,21 @@
+---
+- block:
+  - name : "adding envoy repository gpg key"
+    apt_key:
+      url: "{{ envoy_repository_gpg_url }}"
+      state: present
+  - name : "adding envoy repository source"
+    apt_repository:
+      repo: "{{ envoy_linux_repository_source }}"
+      state: present
+      filename: envoy
+      update_cache: yes
+  - name: "Installing envoy"
+    apt:
+      update_cache: yes
+      pkg: "getenvoy-envoy"
+      install_recommends: true
+      state: latest
+  - name: "confirming envoy installation"
+    shell: "envoy --version"
+  become: yes

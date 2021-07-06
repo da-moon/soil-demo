@@ -1,0 +1,14 @@
+---
+- include_vars:
+    file : "{{ inventory_dir+'/group_vars/gossip_encryption_key.yml'}}"
+- block:
+  - import_tasks:  "00-asserts.yml"
+  - import_tasks:  "01-initialize.yml"
+  - import_tasks:  "02-ufw.yml"
+  - import_tasks:  "03-transport-security.yml"
+  - import_tasks:  "04-config-files.yml"
+  - import_tasks:  "05-policy-files.yml"
+  - import_tasks:  "06-systemd-units.yml"
+  - import_tasks:  "07-consul-acl.yml"
+    run_once: true
+  - import_tasks:  "08-consul-init.yml"

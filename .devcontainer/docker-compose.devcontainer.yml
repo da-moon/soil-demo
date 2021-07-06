@@ -1,0 +1,96 @@
+
+version: "3"
+x-logging-json: &my-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10M"
+      max-file: "5"
+x-consul-proto: &consul-proto
+  image: consul:latest
+  networks:
+    - consul-network
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://0.0.0.0:8500/v1/status/leader"]
+    interval: 30s
+    timeout: 5s
+    retries: 10
+    start_period: 5s
+  environment:
+    - CONSUL_LOCAL_CONFIG={"datacenter":"us_east2","server":true}
+    - CONSUL_BIND_INTERFACE=eth0
+    - CONSUL_CLIENT_INTERFACE=eth0
+  expose:
+    - 8300
+    - 8400
+    - 8500
+    - 8600
+x-vault-proto: &vault-proto
+  image: vault:latest
+  networks:
+    - consul-network
+    - vault-network
+  cap_add:
+    - IPC_LOCK
+  environment:
+    VAULT_ADDR: http://0.0.0.0:8200
+    VAULT_DEV_ROOT_TOKEN_ID: root
+    VAULT_LOCAL_CONFIG: |
+      backend "consul" {
+            address = "consul:8500"
+            advertise_addr = "http://consul:8300"
+            scheme = "http"
+      }
+      disable_mlock = true
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://0.0.0.0:8200/v1/sys/health"]
+    interval: 30s
+    timeout: 5s
+    retries: 10
+    start_period: 5s
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  expose:
+    - 8200
+  command: server -dev
+services:
+  consul:
+    <<: *my-logging
+    <<: *consul-proto
+    container_name: vault-training-consul-node
+    hostname: consul
+    ports:
+      - 8500:8500
+  vault:
+    <<: *my-logging
+    <<: *vault-proto
+    container_name: vault-training-vault-node
+    depends_on:
+      - consul
+    ports:
+      - 8200:8200
+  vault-training:
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root
+    build:
+      context: ../contrib/docker
+      dockerfile: debian.Dockerfile
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    links:
+      - vault:vault
+    depends_on:
+      - vault
+    networks:
+      - consul-network
+      - vault-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../:/workspace:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+networks:
+  vault-network:
+  consul-network:

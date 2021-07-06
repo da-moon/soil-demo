@@ -1,0 +1,33 @@
+---
+- block :
+  - find:
+      paths: ["{{ role_path }}/templates/config"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl\.j2$']
+    register: "hcl_config_filelist"
+    run_once: true
+    delegate_to: localhost
+  - set_fact:
+      hcl_config_filelist: >
+        {{
+          hcl_config_filelist.files |
+          map(attribute='path')  |
+          list |
+          regex_replace(role_path + '/templates/config.*?/','') |
+          regex_replace('\.j2','')
+        }}
+  - name: "uploading consul config files"
+    template:
+      src: "config/{{ item }}.j2"
+      dest: "{{ consul_user_home_path }}/config/{{ item }}"
+      force: yes
+      decrypt: yes
+    loop: "{{ hcl_config_filelist }}"
+  - name: "changing all single quotes to double quotes in consul conf files"
+    shell: |
+      sed -i "s/'/\"/g" {{ consul_user_home_path }}/config/*.hcl
+  - name: "making sure consul configuration files are valid"
+    shell: consul validate {{ consul_user_home_path }}/config
+
+  become: yes

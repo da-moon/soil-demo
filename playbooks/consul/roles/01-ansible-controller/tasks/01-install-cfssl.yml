@@ -1,0 +1,17 @@
+---
+
+- name: check {{ item.name }} executable is present
+  shell: "which {{ item.name }} "
+  register: result
+  ignore_errors: true
+- name: 'downloading {{ item.name }}'
+  get_url:
+    url: "https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/{{ item.name }}_{{ cfssl_version }}_linux_{{ architecture_map[ansible_architecture] }}"
+    dest: "/usr/local/bin/{{ item.name }}"
+    mode: 0755
+    owner: "root"
+    group: "root"
+    checksum: "sha256:{{ cfssl_checksum_url }}"
+    validate_certs : no
+  when: result.rc != 0
+  become: yes

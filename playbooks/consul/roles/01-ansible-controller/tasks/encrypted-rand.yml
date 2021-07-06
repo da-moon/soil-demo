@@ -1,0 +1,14 @@
+---
+- block:
+  - name: "ensuring files to store encrypted variables are created"
+    file:
+      path: "{{ play_encrypted_vars_dir }}/{{ item.name }}.yml"
+      mode: '0755'
+      state: touch
+  - name: "Generating and Encrypting {{ item.name }} variable"
+    shell: "echo -n \"$(dd if=/dev/urandom bs=16 count=1 status=none | base64)\" | ansible-vault encrypt_string --vault-password-file={{ vault_password_file }} --stdin-name '{{ item.name }}'"
+    register: "encrypted"
+  - name: "storing encrypted {{ item.name }} in file"
+    blockinfile:
+      path: "{{ play_encrypted_vars_dir }}/{{ item.name }}.yml"
+      block: "{{ encrypted.stdout_lines | join('\n') }}"

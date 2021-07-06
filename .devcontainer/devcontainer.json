@@ -1,0 +1,40 @@
+{
+  "dockerComposeFile": [
+    "docker-compose.devcontainer.yml"
+  ],
+  "service": "vault-training",
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/workspace",
+  "settings": {
+    "files.eol": "\n",
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "editor.formatOnSave": true
+  },
+  "extensions": [
+    "bungcip.better-toml",
+    "mutantdino.resourcemonitor",
+    "redhat.vscode-yaml",
+    "streetsidesoftware.code-spell-checker",
+    "vscode-snippet.snippet",
+    "wayou.vscode-todo-highlight",
+    "wmaurer.change-case",
+    "yzane.markdown-pdf",
+    "yzhang.markdown-all-in-one",
+    "aaron-bond.better-comments",
+    "bungcip.better-toml",
+    "EditorConfig.EditorConfig",
+    "emeraldwalk.RunOnSave",
+    "kevinkyang.auto-comment-blocks",
+    "ms-azuretools.vscode-docker",
+    "hashicorp.terraform",
+    "wholroyd.hcl",
+    "flaunay.ansible-vault"
+  ],
+  "forwardPorts": [
+    5678
+  ],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "remoteUser": "code"
+}

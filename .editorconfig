@@ -1,0 +1,21 @@
+
+root = true
+
+[*.yml]
+indent_style = space
+indent_size = 2
+end_of_line = 1f
+insert_final_newline = true
+charset = utf_8
+[*.rs]
+indent_style = space
+indent_size = 4
+end_of_line = 1f
+insert_final_newline = true
+charset = utf_8
+[*.Dockerfile]
+indent_style = space
+indent_size = 2
+end_of_line = 1f
+insert_final_newline = true
+charset = utf_8

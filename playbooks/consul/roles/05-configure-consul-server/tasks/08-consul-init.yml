@@ -1,0 +1,39 @@
+---
+- include_vars:
+    file : "{{ play_encrypted_vars_dir }}/consul_root_token.yml"
+- include_vars:
+    file : "{{ play_encrypted_vars_dir }}/default_policy_token.yml"
+  when :
+    - default_agent_policy is defined
+- block:
+  - name: "ensuring consul global environment variables file exists"
+    file:
+        path: "{{ consul_profile_path }}"
+        owner: "root"
+        group: "root"
+        mode: '0755'
+        state: touch
+  - name: "set consul environment variables"
+    blockinfile:
+      path: "{{ consul_profile_path }}"
+      block: |
+        export CONSUL_HTTP_ADDR='http{% if not consul_tls_disable %}s{% endif %}://127.0.0.1:{% if consul_tls_disable %}{{ consul_api_port }}{% else %}{{ consul_https_api_port }}{% endif %}'
+        {% if not consul_tls_disable %}export CONSUL_CACERT='{{ consul_user_home_path }}/ca.pem'
+        export CONSUL_CLIENT_KEY='{{ consul_user_home_path }}/cli-key.pem'
+        export CONSUL_CLIENT_CERT='{{ consul_user_home_path }}/cli.pem'
+        {% endif %}
+        export CONSUL_HTTP_TOKEN="{% if default_agent_policy is defined %}{{ default_policy_token }}{% else %}{{ consul_root_token }}{% endif %}"
+        export CONSUL_MGMT_TOKEN="{{ consul_root_token }}"
+  - name: "setting agent token"
+    shell: >
+      consul acl set-agent-token -http-addr=http{% if not consul_tls_disable %}s{% endif %}://127.0.0.1:{% if consul_tls_disable %}{{ consul_api_port }}{% else %}{{ consul_https_api_port }} -ca-path='{{ consul_user_home_path }}/ca.pem' \
+        -client-cert='{{ consul_user_home_path }}/cli.pem' \
+        -client-key='{{ consul_user_home_path }}/cli-key.pem' \
+      {% endif %} -token="{{ consul_root_token }}" agent "{% if default_agent_policy is defined %}{{ default_policy_token }}{% else %}{{ consul_root_token }}{% endif %}"
+  - name : "forwarding dns with IPTables"
+    shell: |
+      iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j REDIRECT --to-ports {{ consul_dns_port }}
+      iptables -t nat -A PREROUTING -p tcp -m tcp --dport 53 -j REDIRECT --to-ports {{ consul_dns_port }}
+      iptables -t nat -A OUTPUT -d localhost -p udp -m udp --dport 53 -j REDIRECT --to-ports {{ consul_dns_port }}
+      iptables -t nat -A OUTPUT -d localhost -p tcp -m tcp --dport 53 -j REDIRECT --to-ports {{ consul_dns_port }}
+  become: yes

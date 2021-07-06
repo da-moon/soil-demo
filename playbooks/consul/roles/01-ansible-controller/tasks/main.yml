@@ -1,0 +1,25 @@
+---
+
+- name : "playbook running tasks on ansible controller"
+  block:
+  - import_tasks:  "00-asserts.yml"
+  - include_tasks: 01-install-cfssl.yml
+    loop:
+      - { name: cfssl}
+      - { name: cfssl-bundle}
+      - { name: cfssl-certinfo}
+      - { name: cfssl-newkey}
+      - { name: cfssl-scan}
+      - { name: cfssljson}
+      - { name: mkbundle}
+      - { name: multirootca}
+  - include_tasks: 01-consul.yml
+  - name: "Randomly generating and encrypting passwords and secrets"
+    include_tasks: encrypted-rand.yml
+    loop:
+      - { name: gossip_encryption_key}
+
+  delegate_to: localhost
+  when: ansible_facts['os_family'] == "Debian"
+  become: yes
+  run_once: true

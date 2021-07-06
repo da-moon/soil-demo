@@ -1,0 +1,40 @@
+---
+
+- stat:
+    path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli.pem.enc"
+  register: "cli_pem_enc"
+- stat:
+    path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli-key.pem.enc"
+  register: "cli_key_pem_enc"
+- stat:
+    path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli.csr.enc"
+  register: "cli_csr_enc"
+- block:
+  - name : "removing leftover consul cli 'cli.pem.enc'"
+    file:
+      path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli.pem.enc"
+      state: absent
+    when:
+      - cli_pem_enc.stat.exists
+  - name : "removing leftover consul cli 'cli-key.pem.enc'"
+    file:
+      path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli-key.pem.enc"
+      state: absent
+    when:
+      - cli_key_pem_enc.stat.exists
+  - name : "removing leftover consul cli 'cli.csr.enc'"
+    file:
+      path: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/cli.csr.enc"
+      state: absent
+    when:
+      - cli_csr_enc.stat.exists
+  - name: "Generating consul cli certificates for '{{ inventory_hostname }}'"
+
+    # shell: "echo '{\"key\":{\"algo\":\"rsa\",\"size\":2048}}' | cfssl gencert -ca={{ certificate_root_dir }}/consul/ca.pem -ca-key={{ certificate_root_dir }}/consul/ca-key.pem --profile=client - | cfssljson -bare cli"
+    shell: "consul tls cert create -ca {{ certificate_root_dir }}/consul/ca.pem -key={{ certificate_root_dir }}/consul/ca-key.pem -cli && mv dc1-cli-consul-0-key.pem cli-key.pem && mv dc1-cli-consul-0.pem cli.pem"
+    args:
+      chdir: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}"
+  when: >
+    ca_pem_enc.stat.exists == False or
+    ca_key_pem_enc.stat.exists == False or
+    ca_csr_enc.stat.exists == False

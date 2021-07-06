@@ -1,0 +1,30 @@
+---
+
+- name: Check OS compatibility
+  fail:
+    msg: "cannot generate certificates on {{ ansible_os_family }}."
+  when:
+    - ansible_os_family != "Debian"
+- name: Check CPU architecture compatibility
+  fail:
+    msg: "cannot generate certificates on {{ architecture_map[ansible_architecture] }} architecture."
+  when:
+      - architecture_map[ansible_architecture] != "amd64"
+- stat:
+    path: "{{ cfssl_config_path }}"
+  register: "cfssl_config_file"
+
+- name: making sure cfssl config file exists
+  fail:
+    msg: >
+      cannot generate certificates since cfssl config file at
+      '{{ cfssl_config_path }} does not exists'.
+  when:
+      - not cfssl_config_file.stat.exists
+
+- name: Assert variables
+  assert:
+    that:
+      - certificate_root_dir is defined
+      - private_ip is defined
+      - cfssl_config_path is defined

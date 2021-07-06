@@ -1,0 +1,39 @@
+---
+
+
+- name: Assert variables
+  assert:
+    that:
+      - releases_base_url is defined
+      - install_consul is defined
+- shell: |
+    curl -sL "https://releases.hashicorp.com/index.json" | jq -r '[.consul.versions | to_entries | map_values(.value + { slug: .key }) | reverse | .[].builds[] | select( (.version | ( contains("ent") or contains("beta") or contains("rc") )|not) and (.os=="linux") and (.arch=="amd64") )][0].version'
+  register: "latest_version"
+- name: check consul executable is present
+  shell: "which consul"
+  register: result
+  ignore_errors: true
+- block:
+  - name: "checking if latest consul release is higher than installed version"
+    shell: |
+      consul --version |
+      grep -Po '\d+\.\d+\.\d+'
+    register: installed_version
+  - debug:
+      var: latest_version.stdout
+  - debug:
+      var: installed_version.stdout
+  - set_fact:
+      install_consul: "{{ installed_version.stdout !=  latest_version.stdout }}"
+  when:
+    - result.rc == 0
+- block:
+  - name: 'downloading consul v{{ latest_version.stdout }}'
+    unarchive:
+      src: "https://releases.hashicorp.com/consul/{{ latest_version.stdout }}/consul_{{ latest_version.stdout }}_linux_{{ architecture_map[ansible_architecture] }}.zip"
+      dest: "/usr/local/bin/"
+      mode: 0755
+      owner: "root"
+      group: "root"
+      remote_src: yes
+  become: yes

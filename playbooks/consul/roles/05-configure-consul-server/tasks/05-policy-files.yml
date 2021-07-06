@@ -1,0 +1,31 @@
+---
+
+- block :
+  - find:
+      paths: ["{{ role_path }}/templates/policy"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl\.j2$']
+    register: "hcl_policy_filelist"
+    run_once: true
+    delegate_to: localhost
+  - set_fact:
+      hcl_policy_filelist: >
+        {{
+          hcl_policy_filelist.files |
+          map(attribute='path')  |
+          list |
+          regex_replace(role_path + '/templates/policy.*?/','') |
+          regex_replace('\.j2','')
+        }}
+
+  - name: "uploading consul policy files"
+    template:
+      src: "policy/{{ item }}.j2"
+      dest: "{{ consul_user_home_path }}/policy/{{ item }}"
+      force: yes
+      decrypt: yes
+      variable_start_string: '[['
+      variable_end_string: ']]'
+    loop: "{{ hcl_policy_filelist }}"
+  become: yes

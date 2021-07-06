@@ -1,0 +1,4 @@
+---
+
+private_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+retry_join_ips: "{{ play_hosts  | difference(inventory_hostname) }}"

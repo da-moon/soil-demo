@@ -1,0 +1,17 @@
+---
+architecture_map:
+  amd64: amd64
+  x86_64: amd64
+  armv6l: arm
+  armv7l: arm
+  aarch64: arm64
+  32-bit: "386"
+  64-bit: amd64
+
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+systemd_unit_directory: "/usr/lib/systemd/system"
+vault_password_file: "~/.vault_pass.txt"
+play_encrypted_vars_dir: "{{ inventory_dir+'/group_vars/'}}"
+
+# BEGIN ANSIBLE MANAGED BLOCK
+# END ANSIBLE MANAGED BLOCK

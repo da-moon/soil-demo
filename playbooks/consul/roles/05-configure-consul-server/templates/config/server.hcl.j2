@@ -1,0 +1,31 @@
+log_level = "{{ log_level }}"
+data_dir = "/opt/consul"
+server = true
+bootstrap_expect = {{ play_hosts  | length }}
+client_addr = "0.0.0.0"
+datacenter = "dc1"
+performance {
+  raft_multiplier = 1
+}
+ui= {{ consul_ui | lower }}
+retry_join = {{retry_join_ips}}
+ports {
+  dns = {{ consul_dns_port }}
+  http = {{ consul_api_port }}
+  https = {% if consul_tls_disable %}-1{% else %}{{ consul_https_api_port }}{% endif %}
+  grpc = {{ consul_grpc_port }}
+  serf_lan = {{ consul_server_port }}
+  serf_wan = {{ lan_serf_port }}
+  server = {{ wan_serf_port }}
+}
+dns_config {
+  allow_stale = true,
+  max_stale = "87600h"
+  soa {
+    min_ttl = 60
+  }
+  service_ttl {
+    "*" = "0s"
+  },
+  node_ttl = "0s"
+}

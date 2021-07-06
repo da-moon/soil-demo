@@ -1,0 +1,26 @@
+---
+
+- block:
+  - name: "finding all consul insecure certificates"
+    find:
+      file_type: file
+      use_regex: yes
+      recurse: yes
+      paths:
+        - "{{ certificate_root_dir }}/consul"
+      patterns:
+        - '^.*\.pem$'
+        - '^.*\.csr$'
+    register: "filelist"
+  - name: "encrypting insecure consul certificates"
+    shell: "ansible-vault encrypt --vault-password-file={{ vault_password_file }} --output={{ item }}.enc {{ item }}"
+    args:
+      executable: /bin/bash
+      creates: "{{ item }}.enc"
+    loop: "{{ filelist.files | map(attribute='path')  | list }}"
+  - name: "removing insecure certificates under '{{ certificate_root_dir }}/consul'"
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop: "{{ filelist.files | map(attribute='path')  | list }}"
+  run_once: true

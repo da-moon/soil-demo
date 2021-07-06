@@ -1,0 +1,21 @@
+---
+# DNS => The DNS server (TCP and UDP)	8600
+# HTTP => The HTTP API (TCP Only)	8500
+# HTTPS => The HTTPs API	disabled (8501)*
+# gRPC => The gRPC API	disabled (8502)*
+# LAN Serf => The Serf LAN port (TCP and UDP)	8301
+# Wan Serf => The Serf WAN port (TCP and UDP)	8302
+# server => Server RPC address (TCP Only)	8300
+
+consul_dns_port : "{{ lookup('env','CONSUL_DNS_PORT') | default('8600', true) }}"
+consul_api_port : "{{ lookup('env','CONSUL_API_PORT') | default('8500', true) }}"
+consul_https_api_port : "{{ lookup('env','CONSUL_HTTPS_API_PORT') | default('8501', true) }}"
+consul_grpc_port : "{{ lookup('env','consul_grpc_port') | default('8502', true) }}"
+consul_server_port : "{{ lookup('env','CONSUL_SERVER_PORT') | default('8300', true) }}"
+lan_serf_port : "{{ lookup('env','LAN_SERF_PORT') | default('8301', true) }}"
+wan_serf_port : "{{ lookup('env','WAN_SERF_PORT') | default('8302', true) }}"
+
+consul_data_path : "{{ lookup('env','CONSUL_DATA_PATH') | default('/opt/consul', true) }}"
+consul_user_home_path : "/etc/consul.d"
+
+consul_profile_path: "/etc/profile.d/consul.sh"

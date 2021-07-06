@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -o errtrace
+set -o functrace
+set -o errexit
+set -o nounset
+set -o pipefail
+export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+if [ ! $(which sudo) ]; then
+	echo 'Please install "sudo" package' 1>&2
+	exit 1
+fi
+if [[ $EUID -eq 0 ]]; then
+   echo "You must run this script as non-root user with sudo permission." 1>&2
+   exit 1
+fi
+if [ -n "$(command -v apt-get)" ]; then
+	echo "*** Detected Debian based Linux" 1>&2
+	export DEBIAN_FRONTEND=noninteractive
+	sudo apt-get update -qq > /dev/null 2>&1
+	sudo apt-get install -yqq apt-utils curl lsb-release wget ca-certificates gnupg2 jq > /dev/null 2>&1
+	echo "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list > /dev/null
+	wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -  >/dev/null 2>&1
+	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -  >/dev/null 2>&1
+	sudo apt-get update -qq > /dev/null 2>&1
+	sudo apt-get install -yqq linux-headers-$(uname -r) build-essential virtualbox-6.0 > /dev/null 2>&1
+fi
+sudo /sbin/rcvboxdrv setup
+sudo modprobe -v vboxdrv

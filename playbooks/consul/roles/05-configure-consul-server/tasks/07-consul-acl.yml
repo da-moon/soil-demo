@@ -1,0 +1,99 @@
+- block:
+  - name: "bootstraping consul acl"
+    shell: |
+      consul acl bootstrap -http-addr=http{% if not consul_tls_disable %}s{% endif %}://127.0.0.1:{% if consul_tls_disable %}{{ consul_api_port }}{% else %}{{ consul_https_api_port }} -ca-path='{{ consul_user_home_path }}/ca.pem' \
+        -client-cert='{{ consul_user_home_path }}/cli.pem' \
+        -client-key='{{ consul_user_home_path }}/cli-key.pem' \
+      {% endif %} -format=json
+    register: "consul_init_response"
+  - set_fact:
+      consul_init_response: "{{ consul_init_response.stdout | from_json }}"
+  - set_fact:
+      consul_root_token: "{{ consul_init_response.SecretID }}"
+- block :
+  - find:
+      paths: ["{{ consul_user_home_path }}/policy"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl$']
+    register: "consul_policies"
+  - set_fact:
+      consul_policies: >
+        {{
+          consul_policies.files |
+          map(attribute='path')  |
+          list
+        }}
+  - name: "creating policies"
+    shell: >
+      consul acl policy create \
+        -token='{{ consul_root_token }}' \
+        -name {{ item | basename | splitext | first }} \
+        -rules @{{ item }} \
+        -http-addr=http{% if not consul_tls_disable %}s{% endif %}://127.0.0.1:{% if consul_tls_disable %}{{ consul_api_port }}{% else %}{{ consul_https_api_port }} -ca-path='{{ consul_user_home_path }}/ca.pem' \
+        -client-cert='{{ consul_user_home_path }}/cli.pem' \
+        -client-key='{{ consul_user_home_path }}/cli-key.pem' \
+      {% endif %}
+    loop: "{{ consul_policies }}"
+  - block:
+    - name: "creating token for default policy '{{ default_agent_policy }}'"
+      shell : |
+        consul acl token create \
+        -token='{{ consul_root_token }}' \
+        -description "default agent policy" \
+        -policy-name {{ default_agent_policy }} \
+        -http-addr=http{% if not consul_tls_disable %}s{% endif %}://127.0.0.1:{% if consul_tls_disable %}{{ consul_api_port }}{% else %}{{ consul_https_api_port }} -ca-path='{{ consul_user_home_path }}/ca.pem' \
+        -client-cert='{{ consul_user_home_path }}/cli.pem' \
+        -client-key='{{ consul_user_home_path }}/cli-key.pem' \
+        {% endif %} -format=json
+      register: "default_policy_token_response"
+    - set_fact:
+        default_policy_token_response: "{{ default_policy_token_response.stdout | from_json }}"
+    - set_fact:
+        default_policy_token: "{{ default_policy_token_response.SecretID }}"
+    - block:
+      - name: "ensuring directory to store encrypted default policy token exists"
+        file:
+          path: "{{ play_encrypted_vars_dir }}"
+          state: directory
+          owner: "{{ ansible_user }}"
+          mode: '0755'
+      - name: "ensuring file to store encrypted default policy token is created"
+        file:
+          path: "{{ play_encrypted_vars_dir }}/{{ item }}.yml"
+          owner: "{{ ansible_user }}"
+          mode: '0755'
+          state: touch
+        loop:
+          - default_policy_token
+      - name: "encrypting consul root token with ansible-vault"
+        shell: "echo -n \"{{ default_policy_token }}\" | ansible-vault encrypt_string --vault-password-file={{ vault_password_file }} --stdin-name 'default_policy_token'"
+        register: "encrypted_default_policy_token"
+      - blockinfile:
+          path: "{{ play_encrypted_vars_dir }}/default_policy_token.yml"
+          block: "{{ encrypted_default_policy_token.stdout_lines | join('\n') }}"
+      delegate_to : localhost
+    when:
+      - default_agent_policy is defined
+  - block:
+    - name: "ensuring directory to store encrypted variables exists"
+      file:
+        path: "{{ play_encrypted_vars_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: '0755'
+    - name: "ensuring files to store encrypted variables are created"
+      file:
+        path: "{{ play_encrypted_vars_dir }}/{{ item }}.yml"
+        owner: "{{ ansible_user }}"
+        mode: '0755'
+        state: touch
+      loop:
+        - consul_root_token
+    - name: "encrypting consul root token with ansible-vault"
+      shell: "echo -n \"{{ consul_root_token }}\" | ansible-vault encrypt_string --vault-password-file={{ vault_password_file }} --stdin-name 'consul_root_token'"
+      register: "encrypted_consul_root_token"
+    - blockinfile:
+        path: "{{ play_encrypted_vars_dir }}/consul_root_token.yml"
+        block: "{{ encrypted_consul_root_token.stdout_lines | join('\n') }}"
+    delegate_to: localhost

@@ -1,0 +1,47 @@
+---
+- block :
+  - find:
+      paths: ["{{ consul_user_home_path }}"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl$']
+    register: "hcl_config_filelist"
+    run_once: true
+  - set_fact:
+      hcl_config_filelist: >
+        {{
+          hcl_config_filelist.files |
+          map(attribute='path')  |
+          list
+        }}
+  - name: "uploading consul systemd service file"
+    template:
+      src: "service/consul.service.j2"
+      dest: "{{ systemd_unit_directory }}/consul.service"
+      force: yes
+      decrypt: yes
+  - block:
+    - name: "confirming correct ownership of consul directories"
+      file:
+        path: "{{ item }}"
+        state: directory
+        group : "consul"
+        owner: "consul"
+        mode: '0755'
+      with_items:
+          - '{{ consul_user_home_path }}'
+          - '{{ consul_data_path }}'
+    - name: "reloading systemctl"
+      command: "systemctl daemon-reload"
+    - name: "making sure consul service runs at startup"
+      command: "systemctl enable --now consul"
+    - name: "stoping consul service if running"
+      command: "systemctl stop consul"
+    - name: "starting consul service"
+      command: "systemctl start consul"
+    - pause:
+        seconds: 30
+        prompt: waiting for consul server to start and become available
+    - name: "make sure consul service is really running"
+      command: "systemctl is-active consul"
+  become: yes

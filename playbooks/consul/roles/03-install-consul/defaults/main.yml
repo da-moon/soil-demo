@@ -1,0 +1,3 @@
+---
+install_consul: true
+releases_base_url: "https://releases.hashicorp.com"

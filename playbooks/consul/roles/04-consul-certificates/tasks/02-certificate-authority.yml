@@ -1,0 +1,43 @@
+---
+- block :
+  - stat:
+      path: "{{ certificate_root_dir }}/consul/ca.pem.enc"
+    register: "ca_pem_enc"
+  - stat:
+      path: "{{ certificate_root_dir }}/consul/ca-key.pem.enc"
+    register: "ca_key_pem_enc"
+  - stat:
+      path: "{{ certificate_root_dir }}/consul/ca.csr.enc"
+    register: "ca_csr_enc"
+  - block:
+    - name : "removing leftover ca.pem.enc for consul"
+      file:
+        path: "{{ certificate_root_dir }}/consul/ca.pem.enc"
+        state: absent
+      when:
+        - ca_pem_enc.stat.exists
+    - name : "removing leftover ca-key.pem.enc for consul"
+      file:
+        path: "{{ certificate_root_dir }}/consul/ca-key.pem.enc"
+        state: absent
+      when:
+        - ca_key_pem_enc.stat.exists
+    - name : "removing leftover ca.csr.enc for consul"
+      file:
+        path: "{{ certificate_root_dir }}/consul/ca.csr.enc"
+        state: absent
+      when:
+        - ca_csr_enc.stat.exists
+    # - name: "Generating consul CA's private key and certificate"
+    #   args:
+    #     chdir: "{{ certificate_root_dir }}/consul/"
+    - name: "Generating consul CA's private key and certificate"
+      # shell: "cfssl print-defaults csr | sed -e 's/25s6/2048/g' -e 's/ecdsa/rsa/g' | cfssl gencert -initca - | cfssljson -bare ca"
+      shell: "consul tls ca create && mv consul-agent-ca-key.pem ca-key.pem && mv consul-agent-ca.pem ca.pem"
+      args:
+        chdir: "{{ certificate_root_dir }}/consul/"
+    when : >
+      ca_pem_enc.stat.exists == False or
+      ca_key_pem_enc.stat.exists == False or
+      ca_csr_enc.stat.exists == False
+  run_once: true

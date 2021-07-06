@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -o errtrace
+set -o functrace
+set -o errexit
+set -o nounset
+set -o pipefail
+export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+if [ ! $(which sudo) ]; then
+	echo 'Please install "sudo" package' 1>&2
+	exit 1
+fi
+if [[ $EUID -eq 0 ]]; then
+   echo "You must run this script as non-root user with sudo permission." 1>&2
+   exit 1
+fi
+if [ -n "$(command -v apt-get)" ]; then
+  echo "*** Detected Debian based Linux" 1>&2
+  export DEBIAN_FRONTEND=noninteractive
+  # [NOTE] => installing dependencies
+  sudo apt-get update -qq > /dev/null 2>&1
+  sudo apt-get install -yqq apt-utils curl lsb-release wget ca-certificates gnupg2 jq > /dev/null 2>&1
+  # [NOTE] => installing vscode
+  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -  >/dev/null 2>&1
+  echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+  sudo apt update -qq > /dev/null 2>&1
+  sudo apt install -yqq code > /dev/null 2>&1
+fi
+if [ -n "$(command -v paru)" ]; then
+  echo "*** Detected Arch based Linux" 1>&2
+  paru --needed --removemake --cleanafter --noconfirm -Sy visual-studio-code-bin
+fi

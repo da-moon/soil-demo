@@ -1,0 +1,48 @@
+---
+- block :
+  - name: "stoping consul service if running"
+    shell: "systemctl stop consul"
+    ignore_errors: true
+  - name: "cleaning up past setup directories"
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+        - '{{ consul_data_path }}/'
+        - '{{ consul_user_home_path }}'
+  - name: "making sure consul config directories are present on remote"
+    file:
+      path: "{{ item }}"
+      state: directory
+      group : "root"
+      owner: "root"
+      mode: '0755'
+    with_items:
+        - '{{ consul_user_home_path }}'
+        - '{{ consul_data_path }}'
+        - '{{ systemd_unit_directory }}'
+  - name: "Ensure group 'consul' exists"
+    group:
+      name: consul
+      state: present
+  - name: "Ensure system user 'consul' exists"
+    user:
+      state: present
+      shell: /bin/false
+      system: yes
+      name: "consul"
+      group: "consul"
+      home: "{{ consul_user_home_path }}"
+  - name: "making sure consul data directories are present on remote and have proper permissions"
+    file:
+      path: "{{ item }}"
+      state: directory
+      group : "consul"
+      owner: "consul"
+      mode: '0755'
+    with_items:
+        - '{{ consul_data_path }}'
+        - '{{ consul_user_home_path }}'
+        - '{{ consul_user_home_path }}/config'
+        - '{{ consul_user_home_path }}/policy'
+  become: yes

@@ -1,0 +1,17 @@
+---
+
+- name: Check OS compatibility
+  fail:
+    msg: "cannot install cfssl on {{ ansible_os_family }}."
+  when:
+    - ansible_os_family != "Debian"
+- name: Check CPU architecture compatibility
+  fail:
+    msg: "cannot install cfssl on {{ architecture_map[ansible_architecture] }} architecture."
+  when:
+      - architecture_map[ansible_architecture] != "amd64"
+- name: Assert variables
+  assert:
+    that:
+      - cfssl_version is defined
+      - cfssl_checksum_url is defined

@@ -1,0 +1,15 @@
+{% if not consul_tls_disable %}ca_file   = "{{ consul_user_home_path }}/ca.pem"
+cert_file = "{{ consul_user_home_path }}/server.pem"
+key_file  = "{{ consul_user_home_path }}/server-key.pem"
+auto_encrypt {
+  allow_tls = true
+}
+verify_server_hostname=true
+verify_incoming = true
+verify_outgoing = true
+verify_server_hostname = true
+# verify_incoming={% if consul_ui %}false{% else %}true{% endif %}
+{% endif %}
+encrypt= "{{ gossip_encryption_key }}"
+enable_script_checks = false
+disable_remote_exec = true

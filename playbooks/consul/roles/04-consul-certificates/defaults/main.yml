@@ -1,0 +1,2 @@
+---
+cfssl_config_path: "{{ role_path+'/files/cfssl/config.json' }}"

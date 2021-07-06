@@ -1,0 +1,22 @@
+---
+
+- name: Assert variables
+  assert:
+    that:
+      - log_level is defined
+      - systemd_unit_directory is defined
+      - private_ip is defined
+      - retry_join_ips is defined
+      - play_encrypted_vars_dir is defined
+      - consul_tls_disable is defined
+      - consul_dns_port is defined
+      - consul_api_port is defined
+      - consul_https_api_port is defined
+      - consul_grpc_port is defined
+      - consul_server_port is defined
+      - lan_serf_port is defined
+      - wan_serf_port is defined
+      - consul_user_home_path is defined
+      - consul_profile_path is defined
+      - consul_data_path is defined
+      - consul_ui is defined
