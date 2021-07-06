@@ -19,7 +19,7 @@ playbooks:
 .SILENT: $(PLAYBOOKS_TARGETS)
 $(PLAYBOOKS_TARGETS):
 	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -C contrib/playbooks/$(@)/ $(@)
+	- @$(MAKE) --no-print-directory -C playbooks/$(@)/ $(@)
 	- $(call print_completed_target)
 
 .PHONY: playbooks-info
@@ -37,7 +37,7 @@ inventories:
 .SILENT: $(INVENTORIES_TARGETS)
 $(INVENTORIES_TARGETS):
 	- $(eval name=$(@:%-inventories=%))
-	- @$(MAKE) --no-print-directory -C contrib/playbooks/$(name)/ $(name)-inventories
+	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-inventories
 
 .PHONY: inventories-info
 .SILENT: inventories-info
@@ -55,7 +55,7 @@ containers:
 .SILENT: $(CONTAINER_TARGETS)
 $(CONTAINER_TARGETS):
 	- $(eval name=$(@:%-containers=%))
-	- @$(MAKE) --no-print-directory -C contrib/playbooks/$(name)/ $(name)-containers
+	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-containers
 
 TEARDOWN_TARGETS=$(PLAYBOOKS_TARGETS:%=%-teardown)
 .PHONY: teardown
@@ -68,7 +68,7 @@ teardown:
 .SILENT: $(TEARDOWN_TARGETS)
 $(TEARDOWN_TARGETS):
 	- $(eval name=$(@:%-teardown=%))
-	- @$(MAKE) --no-print-directory -C contrib/playbooks/$(name)/ $(name)-clean
+	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-clean
 
 .PHONY: teardown-info
 .SILENT: teardown-info
