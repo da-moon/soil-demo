@@ -1,0 +1,8 @@
+---
+
+- block:                                                                                                                
+  - import_tasks: "00-asserts.yml"                                                                                      
+  - import_tasks: "01-add-docker-sources.yml"
+  - import_tasks: "02-install-docker.yml"
+  - import_tasks: "03-install-docker-compose.yml"
+  - import_tasks: "04-setup-docker.yml"

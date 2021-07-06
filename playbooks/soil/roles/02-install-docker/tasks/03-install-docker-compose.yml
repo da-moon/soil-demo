@@ -1,0 +1,22 @@
+---
+
+- block :
+  - command: docker-compose --version
+    register: docker_compose_current_version
+    changed_when: false
+    failed_when: false
+  - shell: "curl -sL https://api.github.com/repos/docker/compose/releases/latest | jq -r '.tag_name'"
+    register: "docker_compose_version"
+  - name: "Removing existing docker-compose (v{{ docker_compose_version.stdout_lines[0] }} )"
+    file:
+      path: "/usr/local/bin/docker-compose"
+      state: absent
+    when: 
+      - docker_compose_current_version.stdout is defined
+      - docker_compose_version.stdout_lines[0] not in docker_compose_current_version.stdout
+  - name: "Installing Docker Compose v{{ docker_compose_version.stdout_lines[0] }}"
+    get_url:
+      url: https://github.com/docker/compose/releases/download/{{ docker_compose_version.stdout_lines[0] }}/docker-compose-Linux-{{ ansible_architecture }}
+      dest: "/usr/local/bin/docker-compose"
+      mode: 0755
+  become: yes

@@ -1,0 +1,9 @@
+---
+
+- name: "Installing {{ item.name }}"
+  apt:
+    update_cache: yes
+    pkg: "{{ item.name }}"
+    install_recommends: true
+    state: latest
+  when: ansible_facts['os_family'] == "Debian"

@@ -1,0 +1,7 @@
+cluster {
+  node_id = "{{ ansible_hostname }}"
+  advertise = "127.0.0.1:{{ soil_port }}"
+  backend = {% if consul_addr is defined and consul_addr | length > 0 %}consul://{{consul_addr}}{% else %}local://localhost{% endif %}/soil
+  ttl = "3m"
+  retry = "30s"
+}

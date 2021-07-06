@@ -1,0 +1,3 @@
+CONTAINER_COUNT:=3
+DELAY:=1
+VAULT_PASSWORD_FILE=~/.vault_pass.txt

@@ -1,0 +1,8 @@
+---
+
+- name: Assert variables
+  assert:
+    that:
+      - log_level is defined and log_level | length > 0
+      - soil_user_home_path is defined and soil_user_home_path | length > 0
+      - soil_data_path is defined and soil_data_path | length > 0

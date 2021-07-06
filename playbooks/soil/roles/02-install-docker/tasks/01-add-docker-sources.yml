@@ -1,0 +1,11 @@
+---
+- block:
+  - apt_key:
+      url: "{{ docker_repository_gpg_url }}"
+      state: present  
+  - apt_repository:
+      repo: "{{ docker_linux_repository_source }}"
+      state: present
+      filename: docker
+      update_cache: yes
+  become: yes

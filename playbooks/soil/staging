@@ -1,0 +1,4 @@
+[staging-servers]
+consul-server-1
+consul-server-2
+consul-server-3

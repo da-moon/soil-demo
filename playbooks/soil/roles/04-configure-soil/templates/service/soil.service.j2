@@ -1,0 +1,36 @@
+
+[Unit]
+Requires=network-online.target
+After=network-online.target
+{% for item in {{ hcl_config_filelist + hcl_pods_filelist }} %}
+ConditionFileNotEmpty={{ item }}
+{% if not loop.last %}
+{% endif %}
+{% endfor %}
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+User=soil
+Group=soil
+ExecStart=/usr/local/bin/soil agent --id "{{ ansible_hostname }}" \
+{% for item in {{ hcl_config_filelist + hcl_pods_filelist }} %}
+    --config={{ item }}{% if not loop.last %} \
+{% endif %}{% endfor %}
+
+# BEGIN ANSIBLE MANAGED BLOCK
+# END ANSIBLE MANAGED BLOCK
+
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+StartLimitInterval=60
+StartLimitBurst=3
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target

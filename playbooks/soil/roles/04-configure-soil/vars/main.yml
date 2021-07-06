@@ -1,0 +1,3 @@
+---
+
+consul_addr: "{{ lookup('env','CONSUL_HTTP_ADDR') }}"

@@ -1,0 +1,10 @@
+---
+- block :
+  - name: "ensuring users in sudo group can switch to any other group without a password"
+    blockinfile:
+      path: /etc/sudoers
+      state: present
+      block: |
+        %sudo ALL=(ALL) NOPASSWD: ALL
+      validate: 'visudo -cf %s'
+  become: yes

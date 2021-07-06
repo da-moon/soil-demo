@@ -1,0 +1,15 @@
+---
+
+- block:
+  - name: "ensure docker config folder is present"
+    changed_when: false
+    file:
+      path: "{{ docker_config_folder }}"
+      mode: 0644
+      state: directory
+  - name: "ensure docker group present"
+    group:
+      name: docker
+      state: present
+      system: true
+  become: yes

@@ -1,0 +1,16 @@
+---
+
+- block:
+  - name: "Making sure older versions of Docker are not installed."
+    package:
+      name:
+        - docker
+        - docker-engine
+      state: absent
+  - name: "Installing docker"
+    apt:
+      update_cache: yes
+      pkg: "docker-ce"
+      install_recommends: true
+      state: latest
+  become: yes

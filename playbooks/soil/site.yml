@@ -1,0 +1,41 @@
+
+- hosts: all
+  gather_facts: no
+  pre_tasks:
+  - name: "Asserting variables globally used variables"
+    assert:
+      that:
+        - architecture_map is defined
+        - systemd_unit_directory is defined
+  - block :
+    - name: check python executable is present
+      shell: "which python"
+      register: result
+      ignore_errors: true
+    - name: 'install python'
+      raw: 'apt-get install -yqq python'
+      when: result.rc != 0
+    - name: check python-apt is installed
+      shell: "dpkg -l | grep python-apt"
+      register: result
+      ignore_errors: true
+    - name: 'install python-apt'
+      raw: 'apt-get install -yqq python-apt'
+      when: result.rc != 0
+  become: yes
+- name: shared tasks
+  hosts: all
+  gather_facts: yes
+  roles:
+    - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
+    - { role: 02-install-docker, tags: ["02-install-docker"]}
+    - { role: 03-install-soil, tags: ["03-install-soil"]}
+- name: Soil setup playbooks
+  hosts: staging-servers
+  gather_facts: yes
+  roles:
+    - role: 04-configure-soil
+      tags:
+        - "04-configure-soil"
+      vars:
+        consul_addr : "127.0.0.1:8500"

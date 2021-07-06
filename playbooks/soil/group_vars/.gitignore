@@ -1,0 +1,3 @@
+consul_root_token.yml
+default_policy_token.yml
+gossip_encryption_key.yml
