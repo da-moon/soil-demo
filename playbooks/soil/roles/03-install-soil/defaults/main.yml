@@ -1,4 +1,2 @@
 ---
-docker_repository_gpg_url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
-docker_linux_repository_source: "deb [arch={{ architecture_map[ansible_facts['architecture']] }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
-docker_config_folder: "/etc/docker"
+soil_repo: "github.com/akaspin/soil"

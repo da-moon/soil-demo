@@ -9,7 +9,6 @@
       state: absent
     with_items:
         - '{{ soil_data_path }}/'
-        - '{{ soil_user_home_path }}'
   - name: "making sure soil config directories are present on remote"
     file:
       path: "{{ item }}"
@@ -18,6 +17,5 @@
       owner: "root"
       mode: '0755'
     with_items:
-        - '{{ soil_user_home_path }}'
         - '{{ soil_data_path }}'
   become: yes

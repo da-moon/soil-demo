@@ -2,7 +2,7 @@
 [Unit]
 Requires=network-online.target
 After=network-online.target
-{% for item in {{ hcl_config_filelist + hcl_pods_filelist }} %}
+{% for item in hcl_config_filelist  %}
 ConditionFileNotEmpty={{ item }}
 {% if not loop.last %}
 {% endif %}
@@ -14,9 +14,8 @@ StartLimitBurst=3
 User=soil
 Group=soil
 ExecStart=/usr/local/bin/soil agent --id "{{ ansible_hostname }}" \
-{% for item in {{ hcl_config_filelist + hcl_pods_filelist }} %}
-    --config={{ item }}{% if not loop.last %} \
-{% endif %}{% endfor %}
+    --config="{{ soil_config_path }}" \
+    --config="{{ soil_pods_path }}"
 
 # BEGIN ANSIBLE MANAGED BLOCK
 # END ANSIBLE MANAGED BLOCK

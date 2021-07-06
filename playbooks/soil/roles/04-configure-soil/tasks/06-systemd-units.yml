@@ -16,6 +16,9 @@
       patterns: ['^.*\.hcl$']
     register: "hcl_config_filelist"
     run_once: true
+  - debug:
+      var: hcl_config_filelist
+
   - set_fact:
       hcl_config_filelist: >
         {{

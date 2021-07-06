@@ -23,19 +23,27 @@
       raw: 'apt-get install -yqq python-apt'
       when: result.rc != 0
   become: yes
-- name: shared tasks
-  hosts: all
-  gather_facts: yes
-  roles:
-    - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
-    - { role: 02-install-docker, tags: ["02-install-docker"]}
-    - { role: 03-install-soil, tags: ["03-install-soil"]}
 - name: Soil setup playbooks
-  hosts: staging-servers
+  hosts: all
+  environment:
+    PYTHONPATH: "{{ lookup('env','PYTHONPATH') }}:/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python2.7/site-packages"
   gather_facts: yes
   roles:
+    # - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
+    # - { role: 02-install-docker, tags: ["02-install-docker"]}
+    # - { role: 03-install-soil, tags: ["03-install-soil"]}
     - role: 04-configure-soil
       tags:
         - "04-configure-soil"
       vars:
         consul_addr : "127.0.0.1:8500"
+
+# - name: Soil setup playbooks
+#   hosts: staging-servers
+#   gather_facts: yes
+#   roles:
+#     - role: 04-configure-soil
+#       tags:
+#         - "04-configure-soil"
+#       vars:
+#         consul_addr : "127.0.0.1:8500"
