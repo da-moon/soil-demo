@@ -10,7 +10,7 @@ THIS_FILE := $(firstword $(MAKEFILE_LIST))
 SELF_DIR := $(dir $(THIS_FILE))
 .PHONY: $(PROJECT_NAME)
 .SILENT: $(PROJECT_NAME)
-$(PROJECT_NAME)
+$(PROJECT_NAME):
 	- $(call print_running_target)
 	- $(eval command=ansible-playbook -i staging site.yml --limit staging-servers)
 	- @$(MAKE) --no-print-directory \

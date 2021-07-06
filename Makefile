@@ -8,8 +8,10 @@ include contrib/make/targets/git/git.mk
 THIS_FILE := $(firstword $(MAKEFILE_LIST))
 SELF_DIR := $(dir $(THIS_FILE))
 PLAYBOOKS_TARGETS=$(notdir $(patsubst %/,%,$(dir $(wildcard ./playbooks/*/Makefile))))
+
 .PHONY: playbooks
 .SILENT: playbooks
+
 playbooks:
 	- $(call print_running_target)
 	- @$(MAKE) --no-print-directory -f $(THIS_FILE) $(PLAYBOOKS_TARGETS)
