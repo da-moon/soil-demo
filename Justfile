@@ -56,7 +56,6 @@ gitpod:
   #!/usr/bin/env bash
   set -euxo pipefail
   bash "{{ justfile_directory() }}/.gp/build.sh"
-
 ssh-pub-key-env:
   #!/usr/bin/env bash
   set -euo pipefail
@@ -116,3 +115,50 @@ ssh-config: ssh-pub-key
     MACs hmac-sha2-256
     UserKnownHostsFile /dev/null
   EOF
+alias gcloud := vagrant-gcloud
+vagrant-gcloud:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  export NAME="$(basename "{{justfile_directory()}}")"
+  echo $NAME
+  vagrant plugin install vagrant-share vagrant-google vagrant-rsync-back
+  if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
+  export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
+  fi
+  if [ -z ${GOOGLE_APPLICATION_CREDENTIALS+x} ] || [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
+  fi
+  if [ -r "${GOOGLE_APPLICATION_CREDENTIALS}" ];then
+  rm ${GOOGLE_APPLICATION_CREDENTIALS}
+  gcloud iam service-accounts delete --quiet "${NAME}@${GOOGLE_PROJECT_IDiam.gserviceaccount.com" || true ;
+  fi
+  gcloud iam service-accounts create "${NAME}" ;
+  gcloud projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
+  --member="serviceAccount:${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" \
+  --role="roles/owner" ;
+  gcloud iam service-accounts keys \
+  create ${GOOGLE_APPLICATION_CREDENTIALS} \
+  --iam-account="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" ;
+  export GCLOUD_MACHINE_TYPE="n1-standard-8" ;
+  export GCLOUD_DISK_SIZE="50GB" ;
+  export GCLOUD_IMAGE="$(gcloud compute images list  --format='value(NAME)" --filter="name ~ debian AND family ~ debian-10')"
+  export GCLOUD_IMAGE_PROJECT_ID=$(gcloud compute images list  --format='value(PROJECT)" --filter="name ~ debian AND family ~ debian-10')
+  vagrant up
+
+alias gcloud-down := vagrant-gcloud-teardown
+alias vagrant-gcloud-delete := vagrant-gcloud-teardown
+alias gcloud-delete := vagrant-gcloud-teardown
+alias vgt := vagrant-gcloud-teardown
+vagrant-gcloud-teardown:
+  set -euo pipefail
+  #!/usr/bin/env bash
+  vagrant delete -f
+  export NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+  if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
+  export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
+  fi
+  if [ -z ${GOOGLE_APPLICATION_CREDENTIALS+x} ] || [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
+  fi
+  gcloud iam service-accounts delete --quiet "${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" || true ;
+  rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"

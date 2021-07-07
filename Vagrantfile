@@ -1,5 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+
 synced_folder  = ENV[     'SYNCED_FOLDER'      ]  || "/home/vagrant/#{File.basename(Dir.pwd)}"
 memory         = ENV[           'MEMORY'       ]  || 8192
 cpus           = ENV[           'CPUS'         ]  || 8
@@ -22,13 +23,18 @@ utility_scripts= [
  "disable-ssh-password-login",
  "lxd-debian",
 ]
+$cleanup_script = <<-SCRIPT
+apt-get autoremove -yqq --purge > /dev/null 2>&1
+apt-get autoclean -yqq > /dev/null 2>&1
+apt-get clean -qq > /dev/null 2>&1
+rm -rf /var/lib/apt/lists/*
+SCRIPT
 INSTALLER_SCRIPTS_BASE      = "https://raw.githubusercontent.com/da-moon/provisioner-scripts/master/bash/installer"
 UTIL_SCRIPTS_BASE           = "https://raw.githubusercontent.com/da-moon/provisioner-scripts/master/bash/util"
 Vagrant.configure("2") do |config|
   config.vm.define "#{vm_name}"
   config.vm.hostname = "#{vm_name}"
   config.vm.synced_folder ".","#{synced_folder}",auto_correct:true, owner: "vagrant",group: "vagrant",disabled:true
-  config.vagrant.plugins = [ "vagrant-vbguest" ]
   config.vm.provider "virtualbox" do |vb, override|
     override.vm.box="generic/debian10"
     vb.memory = "#{memory}"
@@ -66,16 +72,36 @@ Vagrant.configure("2") do |config|
       [ ! -L /usr/local/bin/modprobe ] && sudo ln -s /sbin/modprobe /usr/local/bin/modprobe
       SCRIPT
   end if Vagrant.has_plugin?('vagrant-libvirt')
+  config.vm.provider :google do |google|
+    name                              = "#{vm_name}"
+    google.google_project_id          = ENV["GOOGLE_PROJECT_ID"]
+    google.google_json_key_location   = ENV["GOOGLE_APPLICATION_CREDENTIALS"] 
+    google.zone                       = ENV["CLOUDSDK_COMPUTE_ZONE"] || "us-central1-a"
+    google.machine_type               = ENV["GCLOUD_MACHINE_TYPE"] || "n1-standard-8"
+    google.image                      = ENV["GCLOUD_IMAGE"] || "debian-10-buster-v20210701"
+    google.image_project_id           = ENV["GCLOUD_IMAGE_PROJECT_ID"] || "debian-cloud"
+    google.disk_size                  = ENV["GCLOUD_DISK_SIZE"] || "50GB"
+    google.disk_type                  = "pd-ssd"
+    # override.ssh.username           = 'vagrant'
+    # override.ssh.password           = 'vagrant'
+    override.ssh.insert_key           = true
+    override.vm.synced_folder ".", "/workspace", type: 'rsync',
+      rsync__args: ["--verbose", "--archive", "-z"],
+      owner: "vagrant",group: "vagrant",
+      sync__exclude: [
+        '.git',
+        '.vagrant',
+      ]
+    end
+  
+  end if Vagrant.has_plugin?('vagrant-google')
   forwarded_ports.each do |port|
     config.vm.network "forwarded_port",
       guest: port,
       host: port,
       auto_correct: true
   end
-  config.vm.provision "shell",
-    privileged:false,
-    name:"cleanup",
-    path: "#{UTIL_SCRIPTS_BASE}/clean-pkgs"
+  config.vm.provision "shell",privileged:true,name:"cleanup", inline: $cleanup_script
   config.vm.provision "shell",
     privileged:false,
     name:"init",
@@ -143,6 +169,6 @@ Vagrant.configure("2") do |config|
     SCRIPT
   config.trigger.after [:provision] do |t|
     t.info = "cleaning up after provisioning"
-    t.run_remote = {path: "#{UTIL_SCRIPTS_BASE}/clean-pkgs" }
+    t.run_remote = {inline: $cleanup_script }
   end
 end
