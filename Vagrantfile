@@ -43,7 +43,7 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm",:id,"--nested-hw-virt", "on"]
     override.vm.synced_folder ".", "#{synced_folder}",disabled: false,
       auto_correct:true, owner: "vagrant",group: "vagrant",type: "virtualbox"
-  end
+  end if Vagrant.has_plugin?('vagrant-vbguest')
   config.vm.provider "hyperv" do |h,override|
     override.vm.box="generic/debian10"
     h.enable_virtualization_extensions = true
@@ -80,20 +80,21 @@ Vagrant.configure("2") do |config|
     google.machine_type               = ENV["GCLOUD_MACHINE_TYPE"] || "n1-standard-8"
     google.image                      = ENV["GCLOUD_IMAGE"] || "debian-10-buster-v20210701"
     google.image_project_id           = ENV["GCLOUD_IMAGE_PROJECT_ID"] || "debian-cloud"
-    google.disk_size                  = ENV["GCLOUD_DISK_SIZE"] || "50GB"
+    google.disk_size                  = ENV["GCLOUD_DISK_SIZE"] || "50"
     google.disk_type                  = "pd-ssd"
+    config.vm.box                     = "google/gce"
     # override.ssh.username           = 'vagrant'
     # override.ssh.password           = 'vagrant'
-    override.ssh.insert_key           = true
-    override.vm.synced_folder ".", "/workspace", type: 'rsync',
+    # override.ssh.insert_key           = true
+    # override.ssh.username = "USERNAME"
+    # override.ssh.private_key_path = "~/.ssh/id_rsa"
+    config.vm.synced_folder ".", "/workspace", type: 'rsync',
       rsync__args: ["--verbose", "--archive", "-z"],
       owner: "vagrant",group: "vagrant",
       sync__exclude: [
         '.git',
         '.vagrant',
       ]
-    end
-  
   end if Vagrant.has_plugin?('vagrant-google')
   forwarded_ports.each do |port|
     config.vm.network "forwarded_port",

@@ -118,33 +118,52 @@ ssh-config: ssh-pub-key
 alias gcloud := vagrant-gcloud
 vagrant-gcloud:
   #!/usr/bin/env bash
-  set -euo pipefail
-  export NAME="$(basename "{{justfile_directory()}}")"
-  echo $NAME
-  vagrant plugin install vagrant-share vagrant-google vagrant-rsync-back
+  set -xeuo pipefail
+  export NAME="$(basename "{{justfile_directory()}}")" ;
+  plugins=(
+    "vagrant-share"
+    "vagrant-google"
+    "vagrant-rsync-back"
+  );
+  available_plugins=($(vagrant plugin list | awk '{print $1}'))
+  intersection=($(comm -12 <(for X in "${plugins[@]}"; do echo "${X}"; done|sort)  <(for X in "${available_plugins[@]}"; do echo "${X}"; done|sort)))
+  to_install=($(echo ${intersection[*]} ${plugins[*]} | sed 's/ /\n/g' | sort -n | uniq -u | paste -sd " " - ))
+  if [ ${#to_install[@]} -ne 0  ];then
+    vagrant plugin install ${to_install[@]}
+  fi
+  GCLOUD_MACHINE_TYPE="n1-standard-8" ;
+  GCLOUD_DISK_SIZE="50";
+  GCLOUD_IMAGE="$(gcloud compute images list \
+    --format='value(NAME)' \
+    --filter='name ~ debian AND family ~ debian-10')" ;
+  GCLOUD_IMAGE_PROJECT_ID="$(gcloud compute images list \
+    --format='value(PROJECT)' \
+    --filter='name ~ debian AND family ~ debian-10')" ;
   if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
-  export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
+    export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
   fi
   if [ -z ${GOOGLE_APPLICATION_CREDENTIALS+x} ] || [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
-  export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
+    export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
+  fi
+  GCLOUD_IAM_ACCOUNT="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com"
+  if ! gcloud iam service-accounts describe "${GCLOUD_IAM_ACCOUNT}" > /dev/null 2>&1; then
+    gcloud iam service-accounts create "${NAME}" ;
+    gcloud projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
+      --member="serviceAccount:${GCLOUD_IAM_ACCOUNT}" \
+      --role="roles/owner" ;
   fi
   if [ -r "${GOOGLE_APPLICATION_CREDENTIALS}" ];then
-  rm ${GOOGLE_APPLICATION_CREDENTIALS}
-  gcloud iam service-accounts delete --quiet "${NAME}@${GOOGLE_PROJECT_IDiam.gserviceaccount.com" || true ;
+    rm ${GOOGLE_APPLICATION_CREDENTIALS}
   fi
-  gcloud iam service-accounts create "${NAME}" ;
-  gcloud projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
-  --member="serviceAccount:${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/owner" ;
+  gcloud iam service-accounts keys list \
+    --iam-account="${GCLOUD_IAM_ACCOUNT}" \
+    --format="value(KEY_ID)" | xargs -I {} \
+    gcloud iam service-accounts keys delete \
+    --iam-account="${GCLOUD_IAM_ACCOUNT}" {} || true ;
   gcloud iam service-accounts keys \
-  create ${GOOGLE_APPLICATION_CREDENTIALS} \
-  --iam-account="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" ;
-  export GCLOUD_MACHINE_TYPE="n1-standard-8" ;
-  export GCLOUD_DISK_SIZE="50GB" ;
-  export GCLOUD_IMAGE="$(gcloud compute images list  --format='value(NAME)" --filter="name ~ debian AND family ~ debian-10')"
-  export GCLOUD_IMAGE_PROJECT_ID=$(gcloud compute images list  --format='value(PROJECT)" --filter="name ~ debian AND family ~ debian-10')
-  vagrant up
-
+    create ${GOOGLE_APPLICATION_CREDENTIALS} \
+    --iam-account="${GCLOUD_IAM_ACCOUNT}" ;
+  vagrant up --provider=google
 alias gcloud-down := vagrant-gcloud-teardown
 alias vagrant-gcloud-delete := vagrant-gcloud-teardown
 alias gcloud-delete := vagrant-gcloud-teardown
@@ -160,5 +179,34 @@ vagrant-gcloud-teardown:
   if [ -z ${GOOGLE_APPLICATION_CREDENTIALS+x} ] || [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
   export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
   fi
-  gcloud iam service-accounts delete --quiet "${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" || true ;
+  GCLOUD_IAM_ACCOUNT="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com"
+  gcloud iam service-accounts delete --quiet "${GCLOUD_IAM_ACCOUNT}" || true ;
   rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
+  vagrant destroy -f
+
+
+# if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
+# export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
+# fi
+# if [ -z ${GOOGLE_APPLICATION_CREDENTIALS+x} ] || [ -z ${GOOGLE_APPLICATION_CREDENTIALS} ]; then
+# export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
+# fi
+# if [ -r "${GOOGLE_APPLICATION_CREDENTIALS}" ];then
+# rm ${GOOGLE_APPLICATION_CREDENTIALS}
+# gcloud iam service-accounts delete --quiet "${NAME}@${GOOGLE_PROJECT_IDiam.gserviceaccount.com" || true ;
+# fi
+# gcloud iam service-accounts create "${NAME}" ;
+# gcloud projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
+# --member="serviceAccount:${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" \
+# --role="roles/owner" ;
+# gcloud iam service-accounts keys \
+# create ${GOOGLE_APPLICATION_CREDENTIALS} \
+# --iam-account="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com" ;
+# export GCLOUD_MACHINE_TYPE="n1-standard-8" ;
+# export GCLOUD_DISK_SIZE="50GB";
+# export GCLOUD_IMAGE="$(gcloud compute images list  --format='value(NAME)" --filter="name ~ debian AND family ~ debian-10')"
+# export GCLOUD_IMAGE_PROJECT_ID=$(gcloud compute images list  --format='value(PROJECT)" --filter="name ~ debian AND family ~ debian-10')
+# vagrant up
+
+# available_plugins=$(vagrant plugin list)
+# vagrant plugin list | grep -qF "${plugin}" || vagrant plugin install "${plugin}";
