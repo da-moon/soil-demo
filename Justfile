@@ -115,8 +115,9 @@ ssh-config: ssh-pub-key
     MACs hmac-sha2-256
     UserKnownHostsFile /dev/null
   EOF
-alias gcloud := vagrant-gcloud
-vagrant-gcloud:
+alias gcloud := vagrant-gcloud-up
+alias vgu := vagrant-gcloud-up
+vagrant-gcloud-up:
   #!/usr/bin/env bash
   set -xeuo pipefail
   export NAME="$(basename "{{justfile_directory()}}")" ;
@@ -131,14 +132,8 @@ vagrant-gcloud:
   if [ ${#to_install[@]} -ne 0  ];then
     vagrant plugin install ${to_install[@]}
   fi
-  GCLOUD_MACHINE_TYPE="n1-standard-8" ;
-  GCLOUD_DISK_SIZE="50";
-  GCLOUD_IMAGE="$(gcloud compute images list \
-    --format='value(NAME)' \
-    --filter='name ~ debian AND family ~ debian-10')" ;
-  GCLOUD_IMAGE_PROJECT_ID="$(gcloud compute images list \
-    --format='value(PROJECT)' \
-    --filter='name ~ debian AND family ~ debian-10')" ;
+  export GCLOUD_MACHINE_TYPE="n1-standard-2" ;
+  export GCLOUD_DISK_SIZE="10";
   if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
     export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
   fi
@@ -159,11 +154,15 @@ vagrant-gcloud:
     --iam-account="${GCLOUD_IAM_ACCOUNT}" \
     --format="value(KEY_ID)" | xargs -I {} \
     gcloud iam service-accounts keys delete \
-    --iam-account="${GCLOUD_IAM_ACCOUNT}" {} || true ;
+    --iam-account="${GCLOUD_IAM_ACCOUNT}" {} >/dev/null 2>&1 || true ;
   gcloud iam service-accounts keys \
     create ${GOOGLE_APPLICATION_CREDENTIALS} \
     --iam-account="${GCLOUD_IAM_ACCOUNT}" ;
-  vagrant up --provider=google
+  rm -f "~/.ssh/${NAME}" ;
+  rm -f "~/.ssh/${NAME}.pub" ;
+  ssh-keygen -q -N "" -t rsa -b 2048 -f "$HOME/.ssh/${NAME}" >/dev/null 2>&1 ;
+  vagrant up --debug --provider=google
+
 alias gcloud-down := vagrant-gcloud-teardown
 alias vagrant-gcloud-delete := vagrant-gcloud-teardown
 alias gcloud-delete := vagrant-gcloud-teardown
@@ -171,8 +170,8 @@ alias vgt := vagrant-gcloud-teardown
 vagrant-gcloud-teardown:
   set -euo pipefail
   #!/usr/bin/env bash
-  vagrant delete -f
-  export NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+  vagrant destroy -f || true ;
+  export NAME="$(basename "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")" ;
   if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
   export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
   fi
@@ -181,9 +180,9 @@ vagrant-gcloud-teardown:
   fi
   GCLOUD_IAM_ACCOUNT="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com"
   gcloud iam service-accounts delete --quiet "${GCLOUD_IAM_ACCOUNT}" || true ;
-  rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
-  vagrant destroy -f
-
+  rm -f "${GOOGLE_APPLICATION_CREDENTIALS}" ;
+  rm -f "~/.ssh/${NAME}" ;
+  rm -f "~/.ssh/${NAME}.pub" ;
 
 # if [ -z ${GOOGLE_PROJECT_ID+x} ] || [ -z ${GOOGLE_PROJECT_ID} ]; then
 # export GOOGLE_PROJECT_ID="$(gcloud config get-value core/project)" ;
