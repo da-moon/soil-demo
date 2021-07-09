@@ -172,9 +172,9 @@ vagrant-down-gcloud:
   export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/${NAME}_gcloud.json" ;
   fi
   GCLOUD_IAM_ACCOUNT="${NAME}@${GOOGLE_PROJECT_ID}.iam.gserviceaccount.com"
-  gcloud iam service-accounts delete --quiet "${GCLOUD_IAM_ACCOUNT}" || true ;
+  gcloud iam service-accounts delete --quiet "${GCLOUD_IAM_ACCOUNT}" > /dev/null 2>&1  || true ;
   rm -f "${GOOGLE_APPLICATION_CREDENTIALS}" ;
   rm -f "$HOME/.ssh/${NAME}" ;
   rm -f "$HOME/.ssh/${NAME}.pub" ;
-  gcloud compute instances delete --quite "${NAME}" ;
+  gcloud compute instances delete --quiet "${NAME}" > /dev/null 2>&1 || true ;
   sudo rm -rf .vagrant ;
