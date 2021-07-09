@@ -75,48 +75,19 @@ Vagrant.configure("2") do |config|
   # [ NOTE ] => vagrant 2.2.16 has a bug in which makes it impossible to provision
   # google boxes with ssh , either use version >=2.2.17 or version <=2.2.16 
   config.vm.provider "google" do |google,override|
-    username                          = ENV['USERNAME'] || %x[whoami].chomp()
-    google_project_id                 = ENV['GOOGLE_PROJECT_ID'] || %x[gcloud config get-value core/project].chomp()
-    gcloud_iam_account                = "#{vm_name}@#{google_project_id}.iam.gserviceaccount.com"
-    ssh_pub_key                       = File.expand_path("~/.ssh/#{vm_name}.pub")).chomp()
     google.name                       = "#{vm_name}"
     google.disk_type                  = "pd-ssd"
     google.disk_size                  = ENV["GCLOUD_DISK_SIZE"] || "50"
-    google.google_json_key_location   = ENV["GOOGLE_APPLICATION_CREDENTIALS"] 
-    google.google_project_id          = google_project_id
-    google.zone                       = ENV["CLOUDSDK_COMPUTE_ZONE"] || %x[gcloud config \
-                                        get-value compute/zone].chomp()
+    google.google_json_key_location   = ENV['GOOGLE_APPLICATION_CREDENTIALS'] || File.expand_path("~/#{vm_name}_gcloud.json").chomp()
+    google.google_project_id          = ENV['GOOGLE_PROJECT_ID'] || %x[gcloud config get-value core/project].chomp()
+    google.zone                       = ENV["CLOUDSDK_COMPUTE_ZONE"] || %x[gcloud config get-value compute/zone].chomp()
     google.machine_type               = ENV["GCLOUD_MACHINE_TYPE"] || "n1-standard-8"
-    google.image                      = ENV["GCLOUD_IMAGE"] || %x[gcloud compute images \
-                                        list --format='value(NAME)' \
-                                        --filter='name ~ debian AND family ~ debian-10'
-                                        ].chomp()
-    google.image_project_id           = ENV["GCLOUD_IMAGE_PROJECT_ID"] || %x[gcloud compute \
-                                        images list --format='value(PROJECT)' \
-                                        --filter='name ~ debian AND family ~ debian-10'
-                                        ].chomp()
-                                        
-    google.metadata                   = {'ssh-keys' => "#{username}:#{File.read(ssh_pub_key).chomp()}"}
+    google.image                      = ENV["GCLOUD_IMAGE"] || %x[gcloud compute images list --format='value(NAME)' --filter='name ~ debian AND family ~ debian-10'].chomp()
+    google.image_project_id           = ENV["GCLOUD_IMAGE_PROJECT_ID"] || %x[gcloud compute images list --format='value(PROJECT)' --filter='name ~ debian AND family ~ debian-10'].chomp()
+    google.metadata                   = {'ssh-keys' => "#{ENV['USERNAME'] || %x[whoami].chomp()}:#{File.read(File.expand_path("~/.ssh/#{vm_name}.pub").chomp()).chomp()}"}
     override.vm.box                   = "google/gce"
-    override.ssh.username             = username
+    override.ssh.username             = ENV['USERNAME'] || %x[whoami].chomp()
     override.ssh.private_key_path     = File.expand_path("~/.ssh/#{vm_name}")
-    override.ssh.extra_args           = [
-      "-vvv",
-    ]
-    # google.trigger.before :up do |trigger|
-    #   trigger.info = "generating ssh key"
-    #   trigger.ruby do |env,machine|
-    #     path = File.expand_path("~/.ssh/#{vm_name}")).chomp()}
-    #     File.delete(path) if File.exist?(path)
-    #     File.delete("#{path}.pub") if File.exist?("#{path}.pub")
-    #     %x{ssh-keygen -q -N "" -t rsa -b 2048 -f "#{path}"}
-    #   end
-    # end
-    # google.trigger.before :up do |trigger|
-    #   trigger.info = "setting up IAM service account and Google Application Credentials"
-    #   trigger.ruby do |env,machine|
-    #   end
-    # end
 
     override.vm.synced_folder ".", "/workspace", type: 'rsync',
       rsync__args: ["--verbose", "--archive", "-z"],
