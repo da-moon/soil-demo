@@ -1,27 +1,27 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+#-*-mode:ruby;indent-tabs-mode:nil;tab-width:2;coding:utf-8-*-
+# vi: ft=ruby tabstop=2 shiftwidth=2 softtabstop=2 expandtab:
 
 synced_folder  = ENV[     'SYNCED_FOLDER'      ]  || "/home/vagrant/#{File.basename(Dir.pwd)}"
 memory         = ENV[           'MEMORY'       ]  || 8192
 cpus           = ENV[           'CPUS'         ]  || 8
 vm_name        = ENV[           'VM_NAME'      ]  || File.basename(Dir.pwd)
-forwarded_ports= []
+forwarded_ports= [
+  # Consul Port
+  "8500",
+  # Vault Port
+  "8200",
+  # LXD Port
+  "8443",
+]
 provisioners   = [
   "node",
-  "python",
-  "ansible",
-  "ripgrep",
   "docker",
-  "lxd",
   "starship",
-  "rust-core-utils",
   "rust-toolchain",
   "kube-util",
-  "spacevim",
 ]
 utility_scripts= [
  "disable-ssh-password-login",
- "lxd-debian",
 ]
 $cleanup_script = <<-SCRIPT
 apt-get autoremove -yqq --purge > /dev/null 2>&1
@@ -37,26 +37,17 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".","#{synced_folder}",auto_correct:true, owner: "vagrant",group: "vagrant",disabled:true
   config.vm.provider "virtualbox" do |vb, override|
     override.vm.box="generic/debian10"
+    override.vm.box_version="3.3.2"
     vb.memory = "#{memory}"
     vb.cpus   = "#{cpus}"
     # => enable nested virtualization
     vb.customize ["modifyvm",:id,"--nested-hw-virt", "on"]
     override.vm.synced_folder ".", "#{synced_folder}",disabled: false,
       auto_correct:true, owner: "vagrant",group: "vagrant",type: "virtualbox"
-  end if Vagrant.has_plugin?('vagrant-vbguest')
-  config.vm.provider "hyperv" do |h,override|
-    override.vm.box="generic/debian10"
-    h.enable_virtualization_extensions = true
-    h.linked_clone = true
-    h.cpus   = "#{cpus}"
-    h.memory = "#{memory}"
-    h.maxmemory = "#{memory}"
-    override.vm.network "public_network"
-    override.vm.synced_folder ".", "#{synced_folder}",disabled: false,auto_correct:true, type: "smb",
-    owner: "vagrant",group: "vagrant"
   end
   config.vm.provider "libvirt" do |libvirt,override|
     override.vm.box="generic/debian10"
+    override.vm.box_version="3.3.2"
     libvirt.memory = "#{memory}"
     libvirt.cpus = "#{cpus}"
     libvirt.nested = true
@@ -72,8 +63,18 @@ Vagrant.configure("2") do |config|
       [ ! -L /usr/local/bin/modprobe ] && sudo ln -s /sbin/modprobe /usr/local/bin/modprobe
       SCRIPT
   end if Vagrant.has_plugin?('vagrant-libvirt')
-  # [ NOTE ] => vagrant 2.2.16 has a bug in which makes it impossible to provision
-  # google boxes with ssh , either use version >=2.2.17 or version <=2.2.16 
+  config.vm.provider "hyperv" do |h,override|
+    override.vm.box="generic/debian10"
+    override.vm.box_version="3.3.2"
+    h.enable_virtualization_extensions = true
+    h.linked_clone = true
+    h.cpus   = "#{cpus}"
+    h.memory = "#{memory}"
+    h.maxmemory = "#{memory}"
+    override.vm.network "public_network"
+    override.vm.synced_folder ".", "#{synced_folder}",disabled: false,auto_correct:true, type: "smb",
+    owner: "vagrant",group: "vagrant"
+  end
   config.vm.provider "google" do |google,override|
     google.name                       = "#{vm_name}"
     google.disk_type                  = "pd-ssd"
@@ -130,45 +131,34 @@ Vagrant.configure("2") do |config|
       path: "#{INSTALLER_SCRIPTS_BASE}/#{provisioner}"
   end
   config.vm.provision "shell",
-    privileged:false,
-    name:"hashicorp",
-    path:"#{INSTALLER_SCRIPTS_BASE}/hashicorp",
-    args:[
-      "--skip", "otto",
-      "--skip", "serf",
-      "--skip", "boundary",
-      "--skip", "waypoint",
-    ]
-  config.vm.provision "shell",
       privileged:false,
       name:"extra-tools",
       inline: <<-SCRIPT
 			set -xeu
-      wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - ;
-      echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/chrome.list > /dev/null
-      sudo apt-get install -y upx cmake libssl-dev fzf libgconf-2-4 google-chrome-stable ;
+      cat << EOF | sudo tee /etc/hosts > /dev/null
+      127.0.0.1  localhost
+      127.0.0.1  #{vm_name}.localdomain
+      127.0.1.1  #{vm_name}
+      EOF
+      sudo iptables -P FORWARD ACCEPT > /dev/null 2>&1 || true
       for i in {1..5}; do wget -O \
         /tmp/vsls-reqs \
         https://aka.ms/vsls-linux-prereq-script && break || sleep 15; done ;
       sudo bash /tmp/vsls-reqs ;
       rm -f /tmp/vsls-req ;
-      sudo snap install diagon ;
-      sudo python3 -m pip install asciinema yq pre-commit
-      sudo yarn global add --silent --prefix /usr/local \
-        @commitlint/cli \
-        @commitlint/config-conventional \
-        remark \
-        remark-cli \
-        remark-stringify \
-        remark-frontmatter \
-        wcwidth \
-        prettier \
-        bash-language-server \
-        dockerfile-language-server-nodejs \
-        puppeteer \
-        reveal-md ;
       rustup default stable
-      cargo install -j`nproc` convco ;
+      cargo install --locked --all-features -j `nproc` just ;
+      sudo curl \
+        -fsSl https://raw.githubusercontent.com/3hhh/fzfuncs/master/bashrc_fzf \
+        -o /etc/bashrc_fzf \
+      && sudo sed -i \
+        -e '/^\s*#/d' \
+        -e '/^\s*$/d' \
+        /etc/bash.bashrc \
+        && ( \
+        echo '[ $(command -v just) ] && just --completions bash | sudo -H tee /etc/bash_completion.d/just > /dev/null; alias j="just";' ; \
+        echo '[ $(command -v fzf) ] && source /etc/bashrc_fzf ;' ; \
+        ) | sudo tee -a /etc/bash.bashrc > /dev/null
     SCRIPT
   config.trigger.after [:provision] do |t|
     t.info = "cleaning up after provisioning"
