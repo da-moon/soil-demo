@@ -1,39 +1,48 @@
-
-- hosts: all
-  gather_facts: no
-  pre_tasks:
-  - name: "Asserting variables globally used variables"
-    assert:
-      that:
-        - architecture_map is defined
-        - systemd_unit_directory is defined
-  - block :
-    - name: check python executable is present
-      shell: "which python3"
-      register: result
-      ignore_errors: true
-    - name: 'install python3'
-      raw: 'apt-get install -yqq python3'
-      when: result.rc != 0
-    - name: check python-apt is installed
-      shell: "dpkg -l | grep python3-apt"
-      register: result
-      ignore_errors: true
-    - name: 'install python3-apt'
-      raw: 'apt-get install -yqq python3-apt'
-      when: result.rc != 0
-  become: yes
-- name: Soil setup playbooks
+- become: true
+  gather_facts: false
   hosts: all
-  gather_facts: yes
+  pre_tasks:
+    - assert:
+        that:
+          - 'architecture_map is defined'
+          - 'systemd_unit_directory is defined'
+      name: 'Asserting variables globally used variables'
+    - block:
+        - ignore_errors: true
+          name: 'check python executable is present'
+          register: result
+          shell: 'which python3'
+        - name: 'install python3'
+          raw: 'apt-get install -yqq python3'
+          when: 'result.rc != 0'
+        - ignore_errors: true
+          name: 'check python3-apt is installed'
+          register: result
+          shell: 'dpkg -l | grep python3-apt'
+        - name: 'install python3-apt'
+          raw: 'apt-get install -yqq python3-apt'
+          when: 'result.rc != 0'
+- gather_facts: true
+  hosts: all
+  name: 'Soil setup playbooks'
   roles:
-    - { role: 00-ansible-controller, tags: ["00-ansible-controller"]}
-    - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
-    - { role: 02-install-docker, tags: ["02-install-docker"]}
-    - { role: 03-install-soil, tags: ["03-install-soil"]}
+    - role: 00-ansible-controller
+      tags:
+        - 00-ansible-controller
+    - role: 01-install-prerequisites
+      tags:
+        - 01-install-prerequisites
+    - role: 02-install-docker
+      tags:
+        - 02-install-docker
+    - role: 03-install-soil
+      tags:
+        - 03-install-soil
     - role: 04-configure-soil
       tags:
-        - "04-configure-soil"
+        - 04-configure-soil
       vars:
-        consul_addr : "consul-1:8500"
-    - { role: 05-deploy-pods, tags: ["05-deploy-pods"]}
+        consul_addr: consul-1:8500
+    - role: 05-deploy-pods
+      tags:
+        - 05-deploy-pods
