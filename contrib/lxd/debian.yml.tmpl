@@ -1,0 +1,68 @@
+#-*-mode:yaml;indent-tabs-mode:nil;tab-width:2;coding:utf-8-*-
+# vi: ft=yaml tabstop=2 shiftwidth=2 softtabstop=2 expandtab:
+description: {{ or (.Env.profile) "cloud-lab" }} Debian LXD profile
+name: {{ or (.Env.profile) "cloud-lab" }}
+used_by: []
+config:
+  limits.cpu: "1"
+  limits.memory: 1GB
+  limits.memory.swap: "false"
+  security.nesting: "true"
+  user.user-data: |
+    #cloud-config
+    output: {all: '| tee -a /var/log/cloud-init-output.log'}
+    apt:
+      conf: |
+        APT {
+          Get {
+            Assume-Yes "true";
+            Fix-Broken "true";
+          };
+        };
+    write_files:
+      - path: /etc/sysctl.d/enabled_ipv4_forwarding.conf
+        content: |
+          net.ipv4.conf.all.forwarding=1
+    write_files:
+      - path: /etc/sysctl.d/netfilter.conf
+        content: |
+          net.netfilter.nf_conntrack_max=1000000
+    write_files:
+      - path: /etc/sysctl.d/bridge.conf
+        content: |
+          net.bridge.bridge-nf-call-iptables=1
+    write_files:
+      - path: /etc/ssh/sshd_config
+        content: |
+          ChallengeResponseAuthentication no
+          UsePAM no
+          X11Forwarding yes
+          PrintMotd no
+          AcceptEnv LANG LC_*
+          Subsystem       sftp    /usr/lib/openssh/sftp-server
+          PubkeyAuthentication yes
+          PermitRootLogin no
+          PasswordAuthentication no
+    package_update: true
+    package_upgrade: true
+    package_reboot_if_required: true
+    packages:
+      - sudo
+      - openssh-server
+    users:
+      - default
+      - name: {{ or (.Env.USER) "cloud-lab" }}
+        sudo: ['ALL=(ALL) NOPASSWD:ALL']
+        groups: sudo
+        shell: /bin/bash
+        lock_passwd: false
+        passwd: {{ or (.Env.PASSWD) "$1$SaltSalt$nSHHaXziL63h20MjLVtVP0" }}
+        ssh_authorized_keys:
+        {{ if (file.Exists "/id_rsa.pub") }}- {{ "/id_rsa.pub" | file.Read }}{{ end }}
+        {{ if (file.Exists (print "/" (or (.Env.profile) "cloud-lab") "_id_rsa.pub") ) }}- {{ print "/" (or (.Env.profile) "cloud-lab") "_id_rsa.pub" | file.Read}}{{ end }}
+    runcmd:
+      - /bin/bash -cex
+      - |
+        echo "========= cloud-init =========" > /tmp/cloud-init
+        systemctl restart sshd ;
+        exit 0 ;

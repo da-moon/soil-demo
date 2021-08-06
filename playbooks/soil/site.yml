@@ -9,41 +9,31 @@
         - systemd_unit_directory is defined
   - block :
     - name: check python executable is present
-      shell: "which python"
+      shell: "which python3"
       register: result
       ignore_errors: true
-    - name: 'install python'
-      raw: 'apt-get install -yqq python'
+    - name: 'install python3'
+      raw: 'apt-get install -yqq python3'
       when: result.rc != 0
     - name: check python-apt is installed
-      shell: "dpkg -l | grep python-apt"
+      shell: "dpkg -l | grep python3-apt"
       register: result
       ignore_errors: true
-    - name: 'install python-apt'
-      raw: 'apt-get install -yqq python-apt'
+    - name: 'install python3-apt'
+      raw: 'apt-get install -yqq python3-apt'
       when: result.rc != 0
   become: yes
 - name: Soil setup playbooks
   hosts: all
-  environment:
-    PYTHONPATH: "{{ lookup('env','PYTHONPATH') }}:/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python2.7/site-packages"
   gather_facts: yes
   roles:
-    # - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
-    # - { role: 02-install-docker, tags: ["02-install-docker"]}
-    # - { role: 03-install-soil, tags: ["03-install-soil"]}
+    - { role: 00-ansible-controller, tags: ["00-ansible-controller"]}
+    - { role: 01-install-prerequisites, tags: ["01-install-prerequisites"]}
+    - { role: 02-install-docker, tags: ["02-install-docker"]}
+    - { role: 03-install-soil, tags: ["03-install-soil"]}
     - role: 04-configure-soil
       tags:
         - "04-configure-soil"
       vars:
-        consul_addr : "127.0.0.1:8500"
-
-# - name: Soil setup playbooks
-#   hosts: staging-servers
-#   gather_facts: yes
-#   roles:
-#     - role: 04-configure-soil
-#       tags:
-#         - "04-configure-soil"
-#       vars:
-#         consul_addr : "127.0.0.1:8500"
+        consul_addr : "consul-1:8500"
+    - { role: 05-deploy-pods, tags: ["05-deploy-pods"]}

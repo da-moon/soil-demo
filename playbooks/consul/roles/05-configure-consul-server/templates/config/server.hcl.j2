@@ -9,6 +9,8 @@ performance {
 }
 ui= {{ consul_ui | lower }}
 retry_join = {{retry_join_ips}}
+bind_addr = "0.0.0.0"
+advertise_addr = "{{private_ip}}"
 ports {
   dns = {{ consul_dns_port }}
   http = {{ consul_api_port }}

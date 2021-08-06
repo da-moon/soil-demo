@@ -1,0 +1,12 @@
+---
+
+- name: Check OS compatibility
+  fail:
+    msg: "{{ ansible_os_family }} is not compatible with tasks in this role"
+  when:
+    - ansible_os_family != "Debian"
+- name: Check CPU architecture compatibility
+  fail:
+    msg: "{{ architecture_map[ansible_architecture] }} is not compatible with tasks in this role."
+  when:
+      - architecture_map[ansible_architecture] != "amd64"

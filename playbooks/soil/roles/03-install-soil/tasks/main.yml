@@ -1,13 +1,5 @@
 ---
-# - include_vars:
-#     file : "{{ inventory_dir+'/group_vars/gossip_encryption_key.yml'}}"
 - block:
-  - import_tasks:  "00-asserts.yml"
-  - import_tasks:  "01-initialize.yml"
-  - import_tasks:  "02-build-soil.yml"
-  - name: "upload binary into remote hosts"
-    copy:
-      src: "/tmp/soil-build/soil"
-      dest: "/usr/local/bin/soil"
-      force: yes
-    become: yes
+  - import_tasks:  "01-build.yml"
+  - import_tasks:  "02-validate-and-install.yml"
+  become: yes

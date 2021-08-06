@@ -1,6 +1,7 @@
-extends: ['@commitlint/config-conventional'],
-  rules: {
-    'type-enum':[
+module.exports = {
+	extends: ['@commitlint/config-conventional'],
+	rules: {
+		'type-enum': [
 			2,
 			'always',
 			[
@@ -11,12 +12,12 @@ extends: ['@commitlint/config-conventional'],
 				'feat',
 				'fix',
 				'perf',
-        'refactor',
-        'release',
+				'refactor',
+				'release',
 				'revert',
 				'style',
 				'test',
 			],
 		],
-  }
+	}
 };

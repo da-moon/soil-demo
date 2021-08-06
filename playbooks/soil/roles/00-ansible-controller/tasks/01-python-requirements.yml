@@ -1,0 +1,5 @@
+- block :
+  - name: "installing 'jmespath' module for Python"
+    pip:
+      name: jmespath
+      extra_args: --user

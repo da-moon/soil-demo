@@ -1,0 +1,6 @@
+---
+- block:
+  - import_tasks:  "00-asserts.yml"
+  - import_tasks:  "01-pod-specs.yml"
+  - import_tasks:  "02-reload-systemd.yml"
+  become: yes

@@ -7,7 +7,7 @@
       use_regex: yes
       recurse: yes
       paths:
-        - "{{ certificate_root_dir }}/consul"
+        - "{{ certificate_root_dir }}"
       patterns:
         - '^.*\.pem$'
         - '^.*\.csr$'
@@ -18,9 +18,8 @@
       executable: /bin/bash
       creates: "{{ item }}.enc"
     loop: "{{ filelist.files | map(attribute='path')  | list }}"
-  - name: "removing insecure certificates under '{{ certificate_root_dir }}/consul'"
+  - name: "removing insecure certificates under '{{ certificate_root_dir }}'"
     file:
       path: "{{ item }}"
       state: absent
     loop: "{{ filelist.files | map(attribute='path')  | list }}"
-  run_once: true

@@ -46,10 +46,11 @@
 [[layers]]
   name = "lang#markdown"
 [[layers]]
+  name = "lang#ruby"
+[[layers]]
   name = "lang#toml"
 [[layers]]
   name = 'lang#json'
-  format_on_save = false
 [[layers]]
   name = 'lang#yaml'
 [[layers]]

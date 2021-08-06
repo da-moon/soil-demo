@@ -1,0 +1,28 @@
+# !/usr/bin/env -S just --justfile
+# vi: ft=just tabstop=2 shiftwidth=2 softtabstop=2 expandtab:
+
+set positional-arguments := true
+set dotenv-load := true
+set shell := ["/bin/bash", "-o", "pipefail", "-c"]
+vault_password_file := "~/.vault_pass.txt"
+name := `basename $PWD`
+container_count := "1"
+
+containers:
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+    export root_justfile="$(readlink -f $(find {{ justfile_directory() }}/../.. -maxdepth 1 -iname '*justfile*' | head -n 1))"
+    export root_dir="$(dirname ${root_justfile})"
+    parallel \
+    -j$(nproc) \
+    --no-run-if-empty \
+    --load 100% \
+    --env root_dir \
+    --env root_justfile \
+    -- \
+    'set -x;' \
+    'seq -s = 30 |tr -d "[:digit:]";' \
+    'echo -e "Job {#}";' \
+    'seq -s - 30 |tr -d "[:digit:]";' \
+    'just -d $root_dir -f $root_justfile lxc-launch "{{ name }}-{1}" ;' \
+    ::: $(seq 1 1 {{container_count}})

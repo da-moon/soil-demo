@@ -1,0 +1,48 @@
+{
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.vagrant": true,
+    "**/.git": true
+  },
+  "[settings.json]": {
+    "editor.formatOnSave": false
+  },
+  "[devcontainer.json]": {
+    "editor.formatOnSave": false
+  },
+  "cSpell.words": [
+    "CACERT",
+    "CAPATH",
+    "COUNTAINER",
+    "Hashicorp",
+    "NOPASSWD",
+    "Pubkey",
+    "Qemu",
+    "aarch",
+    "backends",
+    "btrfs",
+    "bungcip",
+    "cgroup",
+    "dcu",
+    "expandtab",
+    "extensionpack",
+    "gitlab",
+    "gnupg",
+    "hmac",
+    "inet",
+    "mattersll",
+    "newgrp",
+    "redhat",
+    "runcmd",
+    "shiftwidth",
+    "snapd",
+    "softtabstop",
+    "squashfuse",
+    "usermod",
+    "virtualbox",
+    "vscoss",
+    "wayou",
+    "wmaurer"
+  ],
+  "cSpell.enabled": true
+}

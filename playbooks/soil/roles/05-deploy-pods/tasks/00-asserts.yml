@@ -1,0 +1,10 @@
+---
+
+- name: Assert variables
+  assert:
+    that:
+      - systemd_unit_directory is defined and systemd_unit_directory | length > 0
+      - soil_root_path is defined and soil_root_path | length > 0
+      - soil_config_path is defined and soil_config_path | length > 0
+      - soil_pods_path is defined and soil_pods_path | length > 0
+      - soil_data_path is defined and soil_data_path | length > 0

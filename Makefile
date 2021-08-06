@@ -1,84 +1,85 @@
-include vars.mk
-include contrib/make/pkg/base/base.mk
-include contrib/make/pkg/string/string.mk
-include contrib/make/pkg/color/color.mk
-include contrib/make/pkg/functions/functions.mk
-include contrib/make/targets/buildenv/buildenv.mk
-include contrib/make/targets/git/git.mk
-THIS_FILE := $(firstword $(MAKEFILE_LIST))
-SELF_DIR := $(dir $(THIS_FILE))
-PLAYBOOKS_TARGETS=$(notdir $(patsubst %/,%,$(dir $(wildcard ./playbooks/*/Makefile))))
+ifeq ($(OS),Windows_NT)
+    CLEAR = cls
+    LS = dir
+    TOUCH =>>
+    RM = del /F /Q
+    CPF = copy /y
+    RMDIR = -RMDIR /S /Q
+    MKDIR = -mkdir
+    ERRIGNORE = 2>NUL || (exit 0)
+    SEP=\\
+else
+    CLEAR = clear
+    LS = ls
+    TOUCH = touch
+    CPF = cp -f
+    RM = rm -rf
+    RMDIR = rm -rf
+    MKDIR = mkdir -p
+    ERRIGNORE = 2>/dev/null
+    SEP=/
+endif
+ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+DEVNUL := NUL
+WHICH := where
+else
+DEVNUL := /dev/null
+WHICH := which
+endif
 
-.PHONY: playbooks
-.SILENT: playbooks
+null :=
+space := ${null} ${null}
+P_OP :=(
+P_CL :=)
 
-playbooks:
-	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -f $(THIS_FILE) $(PLAYBOOKS_TARGETS)
-	- $(call print_completed_target)
-
-.PHONY: $(PLAYBOOKS_TARGETS)
-.SILENT: $(PLAYBOOKS_TARGETS)
-$(PLAYBOOKS_TARGETS):
-	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -C playbooks/$(@)/ $(@)
-	- $(call print_completed_target)
-
-.PHONY: playbooks-info
-.SILENT: playbooks-info
-playbooks-info:
-	- $(info $(PLAYBOOKS_TARGETS))
-INVENTORIES_TARGETS=$(PLAYBOOKS_TARGETS:%=%-inventories)
-.PHONY: inventories
-.SILENT: inventories
-inventories:
-	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -f $(THIS_FILE) $(INVENTORIES_TARGETS)
-	- $(call print_completed_target)
-.PHONY: $(INVENTORIES_TARGETS)
-.SILENT: $(INVENTORIES_TARGETS)
-$(INVENTORIES_TARGETS):
-	- $(eval name=$(@:%-inventories=%))
-	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-inventories
-
-.PHONY: inventories-info
-.SILENT: inventories-info
-inventories-info:
-	- $(info $(INVENTORIES_TARGETS))
-
-CONTAINER_TARGETS=$(PLAYBOOKS_TARGETS:%=%-containers)
-.PHONY: containers
-.SILENT: containers
-containers:
-	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -f $(THIS_FILE) $(CONTAINER_TARGETS)
-	- $(call print_completed_target)
-.PHONY: $(CONTAINER_TARGETS)
-.SILENT: $(CONTAINER_TARGETS)
-$(CONTAINER_TARGETS):
-	- $(eval name=$(@:%-containers=%))
-	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-containers
-
-TEARDOWN_TARGETS=$(PLAYBOOKS_TARGETS:%=%-teardown)
-.PHONY: teardown
-.SILENT: teardown
-teardown:
-	- $(call print_running_target)
-	- @$(MAKE) --no-print-directory -f $(THIS_FILE) $(TEARDOWN_TARGETS)
-	- $(call print_completed_target)
-.PHONY: $(TEARDOWN_TARGETS)
-.SILENT: $(TEARDOWN_TARGETS)
-$(TEARDOWN_TARGETS):
-	- $(eval name=$(@:%-teardown=%))
-	- @$(MAKE) --no-print-directory -C playbooks/$(name)/ $(name)-clean
-
-.PHONY: teardown-info
-.SILENT: teardown-info
-teardown-info:
-	- $(info $(TEARDOWN_TARGETS))
+PSEP = $(strip $(SEP))
+PWD ?= $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+${space} := ${space}
+SHELL := /bin/bash
+PROJECT_NAME := $(notdir $(CURDIR))
 
 
-.AFTER :
-	%if $(MAKESTATUS) == 2
-	%echo Make: The final shell line exited with status: $(status)
-	%endif
+.PHONY : clean-ssh
+.SILENT : clean-ssh
+clean-ssh:
+	- sed -n -i "/$(PROJECT_NAME)/,/LogLevel/!{//!p}" ~/.ssh/config || true
+
+.PHONY : clean-retry
+.SILENT : clean-retry
+clean-retry:
+	- find . -type f -name '*.retry' -delete
+
+.PHONY : clean-certs
+.SILENT : clean-certs
+clean-certs:
+	- find . -type f -name '*.enc' -delete
+
+.PHONY : vagrant-destroy
+.SILENT : vagrant-destroy
+vagrant-destroy:
+	- vagrant destroy -f true
+	- $(RM) .vagrant
+
+.PHONY : clean
+.SILENT : clean
+clean: clean-ssh clean-retry clean-certs vagrant-destroy
+	- VBoxManage list vms | awk '{print $$1}' | sed 's/"//g' | xargs -r -I {} VBoxManage controlvm {} savestate || true
+	- VBoxManage list vms | awk '{print $$1}' | sed 's/"//g' | xargs -r VBoxManage unregistervm --delete || true
+	- $(RM) $(PWD)/.vagrant
+	- $(RM) $(PWD)/tmp
+
+.PHONY : up
+.SILENT : up
+up: clean-ssh
+	- vagrant up --provider=virtualbox
+
+.PHONY : ssh-config
+.SILENT : ssh-config
+ssh-config:  up
+	- echo '' >> ~/.ssh/config
+	- vagrant ssh-config >> ~/.ssh/config
+	- sed -i '/^\s*$$/d' ~/.ssh/config
+.PHONY : vm
+.SILENT : vm
+vm: ssh-config
+	- $(info VM is ready)

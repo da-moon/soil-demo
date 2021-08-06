@@ -1,7 +1,9 @@
+#-*-mode:hcl;indent-tabs-mode:nil;tab-width:2;coding:utf-8-*-
+# vi: ft=hcl tabstop=2 shiftwidth=2 softtabstop=2 expandtab:
 cluster {
   node_id = "{{ ansible_hostname }}"
-  advertise = "127.0.0.1:{{ soil_port }}"
-  backend = {% if consul_addr is defined and consul_addr | length > 0 %}consul://{{consul_addr}}{% else %}local://localhost{% endif %}/soil
+  advertise = "0.0.0.0:{{ soil_port }}"
+  backend = "{% if consul_addr is defined and consul_addr | length > 0 %}consul://{{consul_addr}}{% else %}local://localhost{% endif %}/soil"
   ttl = "3m"
   retry = "30s"
 }

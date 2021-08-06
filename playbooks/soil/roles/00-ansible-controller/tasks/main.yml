@@ -1,0 +1,8 @@
+---
+
+- name : "playbook running tasks on ansible controller"
+  block:
+  - import_tasks:  "00-asserts.yml"
+  - import_tasks:  "01-python-requirements.yml"
+  delegate_to: localhost
+  run_once: true

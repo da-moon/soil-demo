@@ -1,5 +1,25 @@
 {
-    "recommendations": [
-        "hashicorp.terraform"
-    ]
+  "recommendations": [
+    "redhat.vscode-yaml",
+    "streetsidesoftware.code-spell-checker",
+    "wayou.vscode-todo-highlight",
+    "yzhang.markdown-all-in-one",
+    "aaron-bond.better-comments",
+    "mutantdino.resourcemonitor",
+    "tabnine.tabnine-vscode",
+    "editorconfig.editorconfig",
+    "kevinkyang.auto-comment-blocks",
+    "ms-azuretools.vscode-docker",
+    "karyfoundation.comment",
+    "wmaurer.change-case",
+    "skellock.just",
+    "wholroyd.hcl",
+    "znck.grammarly",
+    "github.copilot",
+    "dracula-theme.theme-dracula",
+    "github.github-vscode-theme",
+    "lostintangent.vsls-pomodoro",
+    "lostintangent.vsls-whiteboard",
+    "ms-vsliveshare.vsliveshare-pack"
+  ]
 }

@@ -1,4 +1,5 @@
-
+---
+# TODO(damoon) add length assert for all roles
 - hosts: all
   gather_facts: no
   pre_tasks:
@@ -23,25 +24,21 @@
       raw: 'apt-get install -yqq python-apt'
       when: result.rc != 0
   become: yes
-- name: shared tasks
-  hosts: all
-  gather_facts: yes
-  roles:
-    - { role: 01-ansible-controller, tags: ["01-ansible-controller"]}
-    - { role: 02-install-prerequisites, tags: ["02-install-prerequisites"]}
-    - { role: 03-install-consul, tags: ["03-install-consul"]}
 - name: Hashicorp Consul Cluster setup playbooks
-  hosts: staging-servers
+  hosts: staging
   gather_facts: yes
   vars_prompt:
   - name: vault_password_file
     prompt: Where is ansible-vault password file?
     private: no
   vars:
-    consul_tls_disable : true
+    consul_tls_disable : false
     override_certificate: true
     certificate_root_dir: "{{ inventory_dir+'/host_vars/certificates'}}"
   roles:
+    - { role: 01-ansible-controller, tags: ["01-ansible-controller"]}
+    - { role: 02-install-prerequisites, tags: ["02-install-prerequisites"]}
+    - { role: 03-install-consul, tags: ["03-install-consul"]}
     - { role: 04-consul-certificates, tags: ["04-consul-certificates"] }
     - role: 05-configure-consul-server
       tags:

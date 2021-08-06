@@ -1,0 +1,615 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "ansible-ensure-backend",
+      "command": "just ansible-ensure-backend"
+    },
+    {
+      "type": "shell",
+      "label": "ansible-inventory",
+      "command": "just ansible-inventory"
+    },
+    {
+      "type": "shell",
+      "label": "ansible-vault-password",
+      "command": "just ansible-vault-password"
+    },
+    {
+      "type": "shell",
+      "label": "autogen",
+      "command": "just autogen"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap",
+      "command": "just bootstrap"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap-core",
+      "command": "just bootstrap-core"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap-lxd",
+      "command": "just bootstrap-lxd"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap-nodejs",
+      "command": "just bootstrap-nodejs"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap-python",
+      "command": "just bootstrap-python"
+    },
+    {
+      "type": "shell",
+      "label": "bootstrap-rust",
+      "command": "just bootstrap-rust"
+    },
+    {
+      "type": "shell",
+      "label": "build-neovim",
+      "command": "just build-neovim"
+    },
+    {
+      "type": "shell",
+      "label": "chisel",
+      "command": "just chisel"
+    },
+    {
+      "type": "shell",
+      "label": "clean",
+      "command": "just clean"
+    },
+    {
+      "type": "shell",
+      "label": "commit",
+      "command": "just commit"
+    },
+    {
+      "type": "shell",
+      "label": "consul",
+      "command": "just consul"
+    },
+    {
+      "type": "shell",
+      "label": "consul-01-ansible-controller",
+      "command": "just consul-01-ansible-controller"
+    },
+    {
+      "type": "shell",
+      "label": "consul-02-install-prerequisites",
+      "command": "just consul-02-install-prerequisites"
+    },
+    {
+      "type": "shell",
+      "label": "consul-03-install-consul",
+      "command": "just consul-03-install-consul"
+    },
+    {
+      "type": "shell",
+      "label": "consul-04-consul-certificates",
+      "command": "just consul-04-consul-certificates"
+    },
+    {
+      "type": "shell",
+      "label": "consul-05-configure-consul-server",
+      "command": "just consul-05-configure-consul-server"
+    },
+    {
+      "type": "shell",
+      "label": "containers",
+      "command": "just containers"
+    },
+    {
+      "type": "shell",
+      "label": "countainers-all",
+      "command": "just countainers-all"
+    },
+    {
+      "type": "shell",
+      "label": "default",
+      "command": "just default"
+    },
+    {
+      "type": "shell",
+      "label": "dependencies",
+      "command": "just dependencies"
+    },
+    {
+      "type": "shell",
+      "label": "dev-container-build",
+      "command": "just dev-container-build"
+    },
+    {
+      "type": "shell",
+      "label": "dev-container-clean",
+      "command": "just dev-container-clean"
+    },
+    {
+      "type": "shell",
+      "label": "dev-container-exec",
+      "command": "just dev-container-exec"
+    },
+    {
+      "type": "shell",
+      "label": "dev-container-pull",
+      "command": "just dev-container-pull"
+    },
+    {
+      "type": "shell",
+      "label": "dev-container-up",
+      "command": "just dev-container-up"
+    },
+    {
+      "type": "shell",
+      "label": "docker-login",
+      "command": "just docker-login"
+    },
+    {
+      "type": "shell",
+      "label": "docker-login-env",
+      "command": "just docker-login-env"
+    },
+    {
+      "type": "shell",
+      "label": "docker-socket-chown",
+      "command": "just docker-socket-chown"
+    },
+    {
+      "type": "shell",
+      "label": "dropbear",
+      "command": "just dropbear"
+    },
+    {
+      "type": "shell",
+      "label": "ensure-docker",
+      "command": "just ensure-docker"
+    },
+    {
+      "type": "shell",
+      "label": "fix-ownership",
+      "command": "just fix-ownership"
+    },
+    {
+      "type": "shell",
+      "label": "format",
+      "command": "just format"
+    },
+    {
+      "type": "shell",
+      "label": "format-json",
+      "command": "just format-json"
+    },
+    {
+      "type": "shell",
+      "label": "format-just",
+      "command": "just format-just"
+    },
+    {
+      "type": "shell",
+      "label": "generate-changelog",
+      "command": "just generate-changelog"
+    },
+    {
+      "type": "shell",
+      "label": "generate-diagrams",
+      "command": "just generate-diagrams"
+    },
+    {
+      "type": "shell",
+      "label": "generate-mingrammer-diagrams",
+      "command": "just generate-mingrammer-diagrams"
+    },
+    {
+      "type": "shell",
+      "label": "git-fetch",
+      "command": "just git-fetch"
+    },
+    {
+      "type": "shell",
+      "label": "gitpod",
+      "command": "just gitpod"
+    },
+    {
+      "type": "shell",
+      "label": "gitpod-ssh-config",
+      "command": "just gitpod-ssh-config"
+    },
+    {
+      "type": "shell",
+      "label": "hosts-config",
+      "command": "just hosts-config"
+    },
+    {
+      "type": "shell",
+      "label": "install-git-delta",
+      "command": "just install-git-delta"
+    },
+    {
+      "type": "shell",
+      "label": "install-hashicorp-dependencies",
+      "command": "just install-hashicorp-dependencies"
+    },
+    {
+      "type": "shell",
+      "label": "install-helm",
+      "command": "just install-helm"
+    },
+    {
+      "type": "shell",
+      "label": "install-kubectl",
+      "command": "just install-kubectl"
+    },
+    {
+      "type": "shell",
+      "label": "install-kubeutils",
+      "command": "just install-kubeutils"
+    },
+    {
+      "type": "shell",
+      "label": "install-minikube",
+      "command": "just install-minikube"
+    },
+    {
+      "type": "shell",
+      "label": "install-nodejs-dependencies",
+      "command": "just install-nodejs-dependencies"
+    },
+    {
+      "type": "shell",
+      "label": "install-nodejs-package",
+      "command": "just install-nodejs-package"
+    },
+    {
+      "type": "shell",
+      "label": "install-os-package",
+      "command": "just install-os-package"
+    },
+    {
+      "type": "shell",
+      "label": "install-paru",
+      "command": "just install-paru"
+    },
+    {
+      "type": "shell",
+      "label": "install-python-dependencies",
+      "command": "just install-python-dependencies"
+    },
+    {
+      "type": "shell",
+      "label": "install-python-package",
+      "command": "just install-python-package"
+    },
+    {
+      "type": "shell",
+      "label": "install-rust-dependencies",
+      "command": "just install-rust-dependencies"
+    },
+    {
+      "type": "shell",
+      "label": "install-rust-package",
+      "command": "just install-rust-package"
+    },
+    {
+      "type": "shell",
+      "label": "install-spacevim",
+      "command": "just install-spacevim"
+    },
+    {
+      "type": "shell",
+      "label": "kary-comments",
+      "command": "just kary-comments"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-launch",
+      "command": "just lxc-launch"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-profile",
+      "command": "just lxc-profile"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-render-profile",
+      "command": "just lxc-render-profile"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-sandbox",
+      "command": "just lxc-sandbox"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-tail-logs",
+      "command": "just lxc-tail-logs"
+    },
+    {
+      "type": "shell",
+      "label": "lxc-wait",
+      "command": "just lxc-wait"
+    },
+    {
+      "type": "shell",
+      "label": "major-release",
+      "command": "just major-release"
+    },
+    {
+      "type": "shell",
+      "label": "markdown-magic",
+      "command": "just markdown-magic"
+    },
+    {
+      "type": "shell",
+      "label": "minor-release",
+      "command": "just minor-release"
+    },
+    {
+      "type": "shell",
+      "label": "patch-release",
+      "command": "just patch-release"
+    },
+    {
+      "type": "shell",
+      "label": "pre-commit",
+      "command": "just pre-commit"
+    },
+    {
+      "type": "shell",
+      "label": "provision",
+      "command": "just provision"
+    },
+    {
+      "type": "shell",
+      "label": "snapshot",
+      "command": "just snapshot"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-common-check-connectivity",
+      "command": "just snippet-ansible-common-check-connectivity"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-common-generate-ansible-vault-password",
+      "command": "just snippet-ansible-common-generate-ansible-vault-password"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-lxc-add-proxy",
+      "command": "just snippet-ansible-consul-lxc-add-proxy"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-lxc-remove-proxy",
+      "command": "just snippet-ansible-consul-lxc-remove-proxy"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-post-provisioning-decrypt-consul-root-token",
+      "command": "just snippet-ansible-consul-post-provisioning-decrypt-consul-root-token"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-post-provisioning-decrypt-default-policy-token",
+      "command": "just snippet-ansible-consul-post-provisioning-decrypt-default-policy-token"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-post-provisioning-test-consul-kv",
+      "command": "just snippet-ansible-consul-post-provisioning-test-consul-kv"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-post-provisioning-update-profile",
+      "command": "just snippet-ansible-consul-post-provisioning-update-profile"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-provisioning-stages-01-ansible-controller",
+      "command": "just snippet-ansible-consul-provisioning-stages-01-ansible-controller"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-provisioning-stages-02-install-prerequisites",
+      "command": "just snippet-ansible-consul-provisioning-stages-02-install-prerequisites"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-provisioning-stages-03-install-consul",
+      "command": "just snippet-ansible-consul-provisioning-stages-03-install-consul"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-provisioning-stages-04-consul-certificates",
+      "command": "just snippet-ansible-consul-provisioning-stages-04-consul-certificates"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-ansible-consul-provisioning-stages-05-configure-consul-server",
+      "command": "just snippet-ansible-consul-provisioning-stages-05-configure-consul-server"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-container-information",
+      "command": "just snippet-lxd-common-commands-container-information"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-list-containers",
+      "command": "just snippet-lxd-common-commands-list-containers"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-login",
+      "command": "just snippet-lxd-common-commands-login"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-profile-information",
+      "command": "just snippet-lxd-common-commands-profile-information"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-remove-container",
+      "command": "just snippet-lxd-common-commands-remove-container"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-common-commands-root-shell",
+      "command": "just snippet-lxd-common-commands-root-shell"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-container-creation-launch",
+      "command": "just snippet-lxd-container-creation-launch"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-container-creation-ssh-config",
+      "command": "just snippet-lxd-container-creation-ssh-config"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-container-creation-test-ssh",
+      "command": "just snippet-lxd-container-creation-test-ssh"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-container-creation-wait",
+      "command": "just snippet-lxd-container-creation-wait"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-initialization-btrfs",
+      "command": "just snippet-lxd-initialization-btrfs"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-initialization-dir",
+      "command": "just snippet-lxd-initialization-dir"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-initialization-iptables",
+      "command": "just snippet-lxd-initialization-iptables"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-installation-snap",
+      "command": "just snippet-lxd-installation-snap"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-lxd-profile-setup-apply",
+      "command": "just snippet-lxd-lxd-profile-setup-apply"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-lxd-profile-setup-create",
+      "command": "just snippet-lxd-lxd-profile-setup-create"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-lxd-profile-setup-render",
+      "command": "just snippet-lxd-lxd-profile-setup-render"
+    },
+    {
+      "type": "shell",
+      "label": "snippet-lxd-lxd-profile-setup-ssh-keys",
+      "command": "just snippet-lxd-lxd-profile-setup-ssh-keys"
+    },
+    {
+      "type": "shell",
+      "label": "soil",
+      "command": "just soil"
+    },
+    {
+      "type": "shell",
+      "label": "soil-00-ansible-controller",
+      "command": "just soil-00-ansible-controller"
+    },
+    {
+      "type": "shell",
+      "label": "soil-01-install-prerequisites",
+      "command": "just soil-01-install-prerequisites"
+    },
+    {
+      "type": "shell",
+      "label": "soil-02-install-docker",
+      "command": "just soil-02-install-docker"
+    },
+    {
+      "type": "shell",
+      "label": "soil-03-install-soil",
+      "command": "just soil-03-install-soil"
+    },
+    {
+      "type": "shell",
+      "label": "soil-04-configure-soil",
+      "command": "just soil-04-configure-soil"
+    },
+    {
+      "type": "shell",
+      "label": "ssh-config",
+      "command": "just ssh-config"
+    },
+    {
+      "type": "shell",
+      "label": "ssh-key",
+      "command": "just ssh-key"
+    },
+    {
+      "type": "shell",
+      "label": "ssh-pub-key",
+      "command": "just ssh-pub-key"
+    },
+    {
+      "type": "shell",
+      "label": "ssh-pub-key-env",
+      "command": "just ssh-pub-key-env"
+    },
+    {
+      "type": "shell",
+      "label": "teardown-lxc",
+      "command": "just teardown-lxc"
+    },
+    {
+      "type": "shell",
+      "label": "update-nodejs",
+      "command": "just update-nodejs"
+    },
+    {
+      "type": "shell",
+      "label": "update-os-pkgs",
+      "command": "just update-os-pkgs"
+    },
+    {
+      "type": "shell",
+      "label": "update-python-pkgs",
+      "command": "just update-python-pkgs"
+    },
+    {
+      "type": "shell",
+      "label": "update-rust",
+      "command": "just update-rust"
+    },
+    {
+      "type": "shell",
+      "label": "vagrant-down-gcloud",
+      "command": "just vagrant-down-gcloud"
+    },
+    {
+      "type": "shell",
+      "label": "vagrant-up-gcloud",
+      "command": "just vagrant-up-gcloud"
+    }
+  ]
+}

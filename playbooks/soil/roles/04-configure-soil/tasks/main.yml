@@ -1,7 +1,37 @@
 ---
+- block :
+  - name: "set 'consul_addr' based on environment variables"
+    set_fact:
+      consul_addr : "{{ lookup('env','CONSUL_HTTP_ADDR') }}"
+  when:
+    - consul_addr is not defined or consul_addr | length == 0
+    - lookup('env','CONSUL_HTTP_ADDR') | length > 0
 - block:
-  # - import_tasks:  "00-asserts.yml"
-  # - import_tasks:  "03-ufw.yml"
-  # - import_tasks:  "04-config-files.yml"
-  # - import_tasks:  "05-pod-files.yml"
-  - import_tasks:  "06-systemd-units.yml"
+  - name : "setting 'consul_root_token_path' variable"
+    set_fact:
+      consul_root_token_path: "{{ (playbook_dir+'/../consul/group_vars/consul_root_token.yml') | realpath }}"
+  - name : "stat '{{ consul_root_token_path }}'"
+    stat:
+      path: "{{ consul_root_token_path }}"
+    register: "consul_root_token_path_stat"
+    delegate_to: localhost
+  - block:
+    - name: "load Consul root ACL key from 'consul' playbook"
+      include_vars:
+        file : "{{ consul_root_token_path }}"
+    - name : "setting 'consul_root_token_path' variable"
+      set_fact:
+        consul_http_token: "{{ consul_root_token }}"
+    when:
+        - consul_root_token_path_stat.stat.exists
+  when:
+    - consul_http_token is not defined or consul_http_token | length == 0
+    - consul_addr is defined and consul_addr | length > 0
+- block:
+  - import_tasks:  "00-asserts.yml"
+  - import_tasks:  "01-initialize.yml"
+  - import_tasks:  "02-ufw.yml"
+  - import_tasks:  "03-config-files.yml"
+  - import_tasks:  "04-systemd-units.yml"
+  - import_tasks:  "05-reload-systemd.yml"
+  become: yes

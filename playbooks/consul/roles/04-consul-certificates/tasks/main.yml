@@ -9,3 +9,4 @@
   - import_tasks:  "05-cli-certificate.yml"
   - import_tasks:  "06-secure-certificates.yml"
   delegate_to: localhost
+  run_once: true

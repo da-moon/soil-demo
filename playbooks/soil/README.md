@@ -16,17 +16,18 @@ ansible-playbook \
 ```bash
 ansible-playbook \
   -i staging \
-  --limit staging-servers \
+  --limit staging \
   --tags 02-install-docker \
   site.yml
 ```
 
-- install soil on hosts
+- build Soil from source and install it on all hosts
 
 ```bash
 ansible-playbook \
+  -v \
   -i staging \
-  --limit staging-servers \
+  --limit staging \
   --tags 03-install-soil \
   site.yml
 ```
@@ -38,7 +39,7 @@ ansible-playbook \
   -i staging \
   -e vault_password_file=~/.vault_pass.txt \
   --vault-password-file ~/.vault_pass.txt \
-  --limit staging-servers \
+  --limit staging \
   --tags 04-configure-soil \
   site.yml
 ```

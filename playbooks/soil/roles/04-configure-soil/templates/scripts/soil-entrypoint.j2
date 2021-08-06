@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#-*-mode:sh;indent-tabs-mode:nil;tab-width:2;coding:utf-8-*-
+# vi: ft=sh tabstop=2 shiftwidth=2 softtabstop=2 expandtab:
+pkill -SIGTERM soil
+COMMAND="exec"
+COMMAND+=" /usr/local/bin/soil"
+#COMMAND="docker run --rm"
+#COMMAND+=" --publish 7654:7654"
+#COMMAND+=" --volume /run/systemd/system:/run/systemd/system"
+#COMMAND+=" --volume /etc/systemd/system:/etc/systemd/system"
+#COMMAND+=" --volume /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket"
+#COMMAND+=" --volume /etc/soil:/etc/soil:ro"
+#COMMAND+=" --volume /var/lib/soil:/var/lib/soil"
+#COMMAND+=" --volume /run/soil:/run/soil"
+#COMMAND+=" akaspin/soil:latest"
+COMMAND+=" agent"
+COMMAND+=" --id '$(hostname)'"
+configs=($(find /etc/soil -type f -name '*.hcl'))
+for config in "${configs[@]}"; do
+    COMMAND+=" --config=${config}"
+done
+$COMMAND 2>&1 | tee -a /var/log/soil.log

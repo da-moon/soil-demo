@@ -1,0 +1,6 @@
+---
+soil_data_path : "/var/lib/soil"
+soil_root_path : "/etc/soil"
+soil_config_path: "{{ soil_root_path }}/config"
+soil_pods_path: "{{ soil_root_path }}/pods"
+soil_port : 7654

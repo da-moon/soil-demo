@@ -1,0 +1,62 @@
+---
+- block:
+  - name: create temporary build directory
+    tempfile:
+      state: directory
+      suffix: build
+    register: tmp_build_dir
+  - block:
+    - name: Assert variables
+      assert:
+        that:
+          - tmp_build_dir.path is defined and tmp_build_dir.path | length > 0
+    - stat:
+        path: "{{ tmp_build_dir.path }}"
+      register: "tmp_build_dir_stat"
+    - name: making sure build directory exists
+      fail:
+        msg: >
+          cannot build soil as build directory at
+          '{{ tmp_build_dir.path }}' does not exists.
+      when:
+          - not tmp_build_dir_stat.stat.exists
+    - name: "setting 'build_dir' variable"
+      set_fact:
+        build_dir: "{{ tmp_build_dir.path }}"
+
+  - name: "showing build directory"
+    debug:
+      msg: "{{ build_dir }}"
+  - name: "ensure 'soil-builder' Docker container is removed"
+    docker_container:
+      name: soil-builder
+      container_default_behavior: compatibility
+      state: absent
+  - name: "build soil in a Docker container"
+    docker_container:
+      auto_remove: yes
+      name: soil-builder
+      container_default_behavior: compatibility
+      image: golang:alpine
+      recreate: yes
+      cleanup: yes
+      detach: false
+      working_dir: "/go/src/github.com/akaspin/soil"
+      entrypoint: ""
+      env:
+        GO111MODULE: "off"
+        CGO_ENABLED: "0"
+        CGO_LDFLAGS: "-s -w -extldflags '-static'"
+      command:
+        - /bin/ash
+        - -ec
+        - |
+          '
+          apk add git 2>&1 | tee -a /go/bin/build.log ;
+          git clone https://github.com/akaspin/soil /go/src/github.com/akaspin/soil 2>&1 | tee -a /go/bin/build.log ;
+          go get -v -d ./... 2>&1 | tee -a /go/bin/build.log ;
+          go build -o /go/bin/soil ./command/soil 2>&1 | tee -a /go/bin/build.log ;
+          /go/bin/soil --help  2>&1 | tee -a /go/bin/build.log ;
+          '
+      volumes:
+        - "{{ build_dir }}:/go/bin"

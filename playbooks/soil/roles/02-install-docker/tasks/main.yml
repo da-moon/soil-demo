@@ -5,5 +5,5 @@
   - import_tasks: "01-add-docker-sources.yml"
   - import_tasks: "02-install-docker.yml"
   - import_tasks: "03-install-docker-compose.yml"
-  - import_tasks: "04-install-ansible-requirements.yml"
-  - import_tasks: "05-setup-docker.yml"
+  - import_tasks: "04-setup-docker.yml"
+  - import_tasks: "05-validate-docker-installation.yml"

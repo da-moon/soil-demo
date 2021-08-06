@@ -1,6 +1,6 @@
 ---
 - block :
-  - name: "stoping consul service if running"
+  - name: "stopping consul service if running"
     shell: "systemctl stop consul"
     ignore_errors: true
   - name: "cleaning up past setup directories"

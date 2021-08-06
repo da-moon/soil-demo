@@ -1,8 +1,0 @@
----
-
-- name: Assert variables
-  assert:
-    that:
-      - soil_user_home_path is defined and soil_user_home_path | length > 0
-      - soil_data_path is defined and soil_data_path | length > 0
-      - soil_repo is defined and soil_repo | length > 0

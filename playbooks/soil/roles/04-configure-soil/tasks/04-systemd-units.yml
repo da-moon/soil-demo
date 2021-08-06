@@ -1,0 +1,31 @@
+---
+- block :
+  - name: "recursively detecting all config files"
+    find:
+      paths: ["{{ soil_config_path }}"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl$']
+    register: "hcl_config_filelist"
+  - name: "setting 'hcl_config_filelist' variable"
+    set_fact:
+      hcl_config_filelist: >
+        {{
+          hcl_config_filelist.files |
+          map(attribute='path')  |
+          list
+        }}
+  - name: "uploading soil systemd wrapper script"
+    template:
+      src: "scripts/soil-entrypoint.j2"
+      dest: "/usr/local/bin/soil-entrypoint"
+      force: yes
+      decrypt: yes
+      mode: "a+x"
+  - name: "uploading soil systemd service file"
+    template:
+      src: "service/soil.service.j2"
+      dest: "{{ systemd_unit_directory }}/soil.service"
+      force: yes
+      decrypt: yes
+      mode: "0755"

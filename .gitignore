@@ -1,7 +1,6 @@
 .vagrant
 *.retry
 tmp
-.stignore
 **/.terraform*
 *.tfstate
 *.tfstate.*

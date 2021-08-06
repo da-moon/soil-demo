@@ -2,13 +2,13 @@
 - block:
   - name: "uploading consul server ca"
     copy:
-      src: "{{ certificate_root_dir }}/consul/ca.pem.enc"
+      src: "{{ certificate_root_dir }}/ca.pem.enc"
       dest: "{{ consul_user_home_path }}/ca.pem"
       force: yes
       decrypt: yes
   - name: "uploading consul server certificates "
     copy:
-      src: "{{ certificate_root_dir }}/consul/{{ inventory_hostname }}/{{ item }}.enc"
+      src: "{{ certificate_root_dir }}/{{ item }}.enc"
       dest: "{{ consul_user_home_path }}/{{ item }}"
       force: yes
       decrypt: yes

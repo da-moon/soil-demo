@@ -2,24 +2,14 @@
 [Unit]
 Requires=network-online.target
 After=network-online.target
-{% for item in hcl_config_filelist  %}
-ConditionFileNotEmpty={{ item }}
-{% if not loop.last %}
-{% endif %}
-{% endfor %}
 StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
-User=soil
-Group=soil
-ExecStart=/usr/local/bin/soil agent --id "{{ ansible_hostname }}" \
-    --config="{{ soil_config_path }}" \
-    --config="{{ soil_pods_path }}"
-
-# BEGIN ANSIBLE MANAGED BLOCK
-# END ANSIBLE MANAGED BLOCK
-
+{% if consul_http_token is defined and consul_http_token | length > 0 %}
+Environment=CONSUL_HTTP_TOKEN="{{ consul_http_token }}"
+{% endif %}
+ExecStart=/bin/bash /usr/local/bin/soil-entrypoint
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 KillSignal=SIGINT

@@ -1,0 +1,34 @@
+---
+- block:
+  - name: Assert variables
+    assert:
+      that:
+        - build_dir is defined and build_dir | length > 0
+  - name: "stat '{{ build_dir }}/soil'"
+    stat:
+      path: "{{ build_dir }}/soil"
+    register: "binary_stat"
+  - name: "ensuring soil binary is in '{{ build_dir }}'"
+    fail:
+      msg: >
+        soil binary does not exist at
+        '{{ build_dir }}/soil'.
+    when:
+        - not binary_stat.stat.exists
+  - name: "ensuring soil executable was built without an error"
+    shell: "./soil --help"
+    args:
+      chdir: "{{ build_dir }}"
+  - name: "ensuring all soil services are stopped in case they are running"
+    shell: "systemctl stop soil"
+    ignore_errors: true
+  - name: "copying the soil binary to /usr/local/bin"
+    copy:
+      remote_src: True
+      src: "{{ build_dir }}/soil"
+      dest: "/usr/local/bin/soil"
+      mode: "a+x"
+  - name: "cleanup build directory"
+    file:
+      path : "{{ build_dir }}"
+      state : absent

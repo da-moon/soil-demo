@@ -35,7 +35,7 @@
       command: "systemctl daemon-reload"
     - name: "making sure consul service runs at startup"
       command: "systemctl enable --now consul"
-    - name: "stoping consul service if running"
+    - name: "stopping consul service if running"
       command: "systemctl stop consul"
     - name: "starting consul service"
       command: "systemctl start consul"

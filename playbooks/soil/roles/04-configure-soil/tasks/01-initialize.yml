@@ -1,0 +1,31 @@
+---
+- block:
+  - block:
+    - name: "ensuring scheme is not part of 'consul_addr'"
+      set_fact:
+        consul_addr: "{{ consul_addr | regex_replace('^http(s)?:\\/\\/', '')  }}"
+    when:
+      - consul_addr is defined and consul_addr | length > 0
+  - name: "stopping soil service if running"
+    shell: "systemctl stop soil"
+    ignore_errors: true
+  - name: "cleaning up past setup directories"
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+        - '{{ soil_data_path }}'
+        - '{{ soil_config_path }}'
+        - '{{ soil_pods_path }}'
+  - name: "ensuring required directories are present on remote"
+    file:
+      path: "{{ item }}"
+      state: directory
+      group : "root"
+      owner: "root"
+      mode: '0755'
+    with_items:
+        - '{{ soil_data_path }}'
+        - '{{ soil_config_path }}'
+        - '{{ soil_pods_path }}'
+        - '{{ systemd_unit_directory }}'

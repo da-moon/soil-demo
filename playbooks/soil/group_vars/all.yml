@@ -8,14 +8,10 @@ architecture_map:
   32-bit: "386"
   64-bit: amd64
 
+
+ansible_python_interpreter: /usr/bin/python3
 ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 systemd_unit_directory: "/usr/lib/systemd/system"
 
 # BEGIN ANSIBLE MANAGED BLOCK
 # END ANSIBLE MANAGED BLOCK
-
-soil_data_path : "{{ lookup('env','SOIL_DATA_PATH') | default('/var/lib/soil', true) }}"
-soil_user_home_path : "{{ lookup('env','SOIL_USER_HOME_PATH') | default('/etc/soil', true) }}"
-soil_config_path: "{{ soil_user_home_path }}/config"
-soil_pods_path: "{{ soil_user_home_path }}/pods"
-soil_port : 7654

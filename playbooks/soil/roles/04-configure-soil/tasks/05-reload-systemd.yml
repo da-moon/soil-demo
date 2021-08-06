@@ -1,0 +1,15 @@
+---
+- block:
+  - name: "reloading systemctl"
+    command: "systemctl daemon-reload"
+  - name: "making sure soil service runs at startup"
+    command: "systemctl enable --now soil"
+  - name: "stopping soil service if running"
+    command: "systemctl stop soil"
+  - name: "starting soil service"
+    command: "systemctl start soil"
+  - pause:
+      seconds: 30
+      prompt: waiting for soil agent to start and become available
+  - name: "make sure soil service is really running"
+    command: "systemctl is-active soil"

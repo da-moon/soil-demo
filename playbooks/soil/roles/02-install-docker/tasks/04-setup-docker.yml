@@ -1,0 +1,31 @@
+---
+
+- block:
+  - name: "ensure docker config folder is present"
+    changed_when: false
+    file:
+      path: "{{ docker_config_folder }}"
+      mode: 0644
+      state: directory
+  - name: "ensure docker group present"
+    group:
+      name: docker
+      state: present
+      system: true
+  # [ NOTE ] =>
+  # - https://github.com/richlamdev/ansible-misc/tree/master/tasks
+  - name: Read accounts from database
+    getent:
+      database: passwd
+  - name: "setting 'non_system_users' variable"
+    set_fact:
+      non_system_users: "{{ getent_passwd | dict2items | json_query('[? contains(value, `/bin/bash`)].key') }}"
+    # non_system_users: "{{ getent_passwd | dict2items | json_query('[? !(contains(value, `/usr/sbin/nologin`))].key') }}"
+  - name: "ensure all non-system users belong to docker group"
+    user:
+      name: "{{item}}"
+      groups: docker
+      append: yes
+    loop: "{{ non_system_users }}"
+
+  become: yes

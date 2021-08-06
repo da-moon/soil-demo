@@ -1,0 +1,38 @@
+---
+- block:
+  - name: Read accounts from database
+    getent:
+      database: passwd
+    become: yes
+  - name: "setting 'non_system_users' variable"
+    set_fact:
+      non_system_users: "{{ getent_passwd | dict2items | json_query('[? contains(value, `/bin/bash`)].key') }}"
+    # non_system_users: "{{ getent_passwd | dict2items | json_query('[? !(contains(value, `/usr/sbin/nologin`))].key') }}"
+  - name: "reset ssh connection"
+    meta: reset_connection
+  - name: "ensuring all non-system user can interact with docker daemon without sudo"
+    docker_container:
+      name: "test-{{ item }}"
+      image: "{{ default_container_image }}"
+      container_default_behavior: compatibility
+      state: present
+      auto_remove: yes
+      interactive: no
+      keep_volumes: no
+      cleanup: yes
+      detach: false
+      tty: no
+    become_user: "{{ item }}"
+    loop: "{{ non_system_users }}"
+  - name: "ensuring using '{{ default_container_image }}' docker image are removed"
+    docker_container:
+      container_default_behavior: compatibility
+      auto_remove: yes
+      name: "test-{{ item }}"
+      state: absent
+    become_user: "{{ item }}"
+    loop: "{{ non_system_users }}"
+- name: "remove '{{ default_container_image }}' docker image"
+  docker_image:
+    name: "{{ default_container_image }}"
+    state: absent

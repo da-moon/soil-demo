@@ -1,0 +1,31 @@
+- block :
+  - name: "recursively detecting all pod spec files"
+    find:
+      paths: ["{{ role_path }}/templates/pods"]
+      file_type: file
+      use_regex: yes
+      patterns: ['^.*\.hcl\.j2$']
+    register: "hcl_pod_spec_filelist"
+    run_once: true
+    delegate_to: localhost
+  - name: "setting 'hcl_pod_spec_filelist' variable"
+    set_fact:
+      hcl_pod_spec_filelist: >
+        {{
+          hcl_pod_spec_filelist.files |
+          map(attribute='path')  |
+          list |
+          regex_replace(role_path + '/templates/pods.*?/','') |
+          regex_replace('\.j2','')
+        }}
+
+  - name: "uploading pod spec files"
+    template:
+      src: "pods/{{ item }}.j2"
+      dest: "{{ soil_pods_path }}/{{ item }}"
+      force: yes
+      decrypt: yes
+      variable_start_string: '[['
+      variable_end_string: ']]'
+      mode: "0755"
+    loop: "{{ hcl_pod_spec_filelist }}"

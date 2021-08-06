@@ -11,11 +11,14 @@
       - { name: jq}
       - { name: wget}
       - { name: sudo}
+      - { name: python3}
+      - { name: python3-pip}
       - { name: unzip}
       - { name: apt-transport-https}
       - { name: ca-certificates}
       - { name: gnupg2}
-      - { name: iptables}
-      - { name: software-properties-common}
       - { name: ufw}
+  - name: installing 'docker' module for Python
+    pip:
+      name: docker>=5.0.0
   become: yes
