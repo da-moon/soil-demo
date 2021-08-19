@@ -382,7 +382,7 @@ install-python-dependencies: update-python-pkgs
     isort \
     coverage \
     "
-    installed=($( $(which python3) -m pip list --user --format=freeze 2>dev/null \
+    installed=($( $(which python3) -m pip list --user --format=freeze 2>/dev/null \
     | (/bin/grep -v '^\-e' || true) \
     | cut -d = -f 1 || true \
     ))
@@ -783,7 +783,6 @@ install-spacevim:
     -c "call dein#direct_install('iamcco/markdown-preview.nvim', {'on_ft': ['markdown', 'pandoc.markdown', 'rmd'],'build': 'yarn --cwd app --frozen-lockfile install' })" \
     -c "call dein#direct_install('lymslive/vimloo', { 'merged': '0' })" \
     -c "call dein#direct_install('lymslive/vnote', { 'depends': 'vimloo' })" \
-    -c "call dein#direct_install('neoclide/coc.nvim', { 'merged': 0, 'rev': 'master', 'build': 'yarn install --frozen-lockfile' })" \
     -c "qall"
     if [ -r "$HOME/.cache/vimfiles/repos/github.com/zchee/deoplete-go/rplugin/python3/deoplete/sources/deoplete_go.py" ]; then
     sed -i \
@@ -795,21 +794,18 @@ install-spacevim:
     fi
     mv "$HOME/.SpaceVim/autoload/SpaceVim/plugins.vim.bak" "$HOME/.SpaceVim/autoload/SpaceVim/plugins.vim"
     nvim --headless \
-    -c "call dein#install()" \
-    nvim --headless \
-    -c "call dein#update()" \
-    -c "qall"
-    nvim --headless \
-    -c "call dein#remote_plugins()" \
-    -c "qall"
-    nvim --headless \
-    -c "UpdateRemotePlugins" \
-    -c "qall"
+      -c "call dein#install()" \
+      -c "call dein#update()" \
+      -c "call dein#remote_plugins()" \
+      -c "call dein#recache_runtimepath()" \
+      -c "UpdateRemotePlugins" \
+      -c "qall" ; \
+    [ -d "${HOME}/.SpaceVim/bundle/vimproc.vim" ] && make -C ~/.SpaceVim/bundle/vimproc.vim ;
     if command -- go version > /dev/null 2>&1 ; then
         nvim --headless \
         -c "GoInstallBinaries" \
         -c "GoUpdateBinaries" \
-        -c "qall"
+        -c "qall" || true
     fi
 
 # ─── KUBERNETES UTILITIES ───────────────────────────────────────────────────────
@@ -942,6 +938,8 @@ alias pc := pre-commit
 pre-commit: format-just
     #!/usr/bin/env bash
     set -euo pipefail
+    IFS=':' read -a paths <<< "$(printenv PATH)" ;
+    [[ ! " ${paths[@]} " =~ " ${HOME}/.local/bin " ]] && export PATH="${PATH}:${HOME}/.local/bin" || true
     pushd "{{ justfile_directory() }}" > /dev/null 2>&1
     if [ -r .pre-commit-config.yaml ]; then
       export PIP_USER=false
