@@ -105,8 +105,6 @@ bootstrap-core: update-os-pkgs
     #!/usr/bin/env bash
     set -euo pipefail
     core_dependencies=()
-    core_dependencies+=("ansible")
-    core_dependencies+=("ansible-lint")
     core_dependencies+=("jq")
     core_dependencies+=("parallel")
     core_dependencies+=("cmake")
@@ -122,12 +120,12 @@ bootstrap-core: update-os-pkgs
     core_dependencies+=("exa")
     core_dependencies+=("graphviz")
     if command -- apt -h > /dev/null 2>&1 ; then
+      core_dependencies+=("python3-distutils")
       core_dependencies+=("libgconf-2-4")
       core_dependencies+=("libssl-dev")
       core_dependencies+=("golang")
       core_dependencies+=("build-essential")
       core_dependencies+=("software-properties-common")
-      core_dependencies+=("ansible-tower-cli")
       core_dependencies+=("poppler-utils")
       core_dependencies+=("librsvg2-bin")
       core_dependencies+=("lmodern")
@@ -305,7 +303,8 @@ bootstrap-python: _remove-pip
 
     if ! command -- $(which pip3) --version > /dev/null 2>&1 ; then
         echo >&2 "*** installing pip with 'get-pip.py' script"
-        curl -fsSl https://bootstrap.pypa.io/get-pip.py | python3
+        export PIP_USER=false
+        curl -fsSl https://bootstrap.pypa.io/get-pip.py | sudo python3 -
     else
       echo >&2 "*** Python3 and Pip3 installations have been validated."
       true
@@ -372,6 +371,7 @@ install-python-dependencies: update-python-pkgs
     [[ ! " ${paths[@]} " =~ " ${HOME}/.local/bin " ]] && export PATH="${PATH}:${HOME}/.local/bin" || true
     echo >&2 "*** ensuring all required python packages are installed"
     PYTHON_PACKAGES="\
+    ansible \
     ansible-generator \
     diagrams \
     yq \
@@ -382,16 +382,12 @@ install-python-dependencies: update-python-pkgs
     isort \
     coverage \
     "
+    ! ansible-vault --version > /dev/null 2>&1 && PIP_USER=false sudo python3 -m pip install ansible-vault
     installed=($( $(which python3) -m pip list --user --format=freeze 2>/dev/null \
     | (/bin/grep -v '^\-e' || true) \
     | cut -d = -f 1 || true \
     ))
     IFS=' ' read -a PYTHON_PACKAGES <<< "$PYTHON_PACKAGES" ;
-    if command -- pacman --version > /dev/null 2>&1 ; then
-        PYTHON_PACKAGES+=("ansible-tower-cli")
-    else
-      true
-    fi
     to_install=()
     if [ ${#PYTHON_PACKAGES[@]} -ne 0  ];then
       intersection=($(comm -12 <(for X in "${PYTHON_PACKAGES[@]}"; do echo "${X}"; done|sort)  <(for X in "${installed[@]}"; do echo "${X}"; done|sort)))
