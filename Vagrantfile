@@ -139,7 +139,7 @@ Vagrant.configure("2") do |config|
       127.0.0.1  localhost
       127.0.0.1  #{vm_name}.localdomain
       127.0.1.1  #{vm_name}
-      EOF
+EOF
       sudo iptables -P FORWARD ACCEPT > /dev/null 2>&1 || true
       for i in {1..5}; do wget -O \
         /tmp/vsls-reqs \
