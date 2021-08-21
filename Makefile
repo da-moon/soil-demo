@@ -57,7 +57,7 @@ clean-certs:
 .PHONY : vagrant-destroy
 .SILENT : vagrant-destroy
 vagrant-destroy:
-	- vagrant destroy -f true
+	- vagrant destroy -f || true
 	- $(RM) .vagrant
 
 .PHONY : clean
